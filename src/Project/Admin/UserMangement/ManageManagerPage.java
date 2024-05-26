@@ -5,8 +5,10 @@ package Project.Admin.UserMangement;
 
 import Project.Admin.AdminDashboard;
 import Project.Admin.BookingManagement.*;
+import Project.Admin.BusManagement.ManageBusMaintenancePage;
 import Project.Admin.BusManagement.ManageBusPage;
 import Project.Admin.BusManagement.ManageRoutePage;
+import Project.Admin.BusManagement.ManageStopRoutePage;
 import Project.Admin.GenerateReportPage;
 import Project.Admin.ViewFeedbackPage;
 
@@ -47,6 +49,8 @@ public class ManageManagerPage extends JFrame{
         //Children of Bus Management
         DefaultMutableTreeNode manage_bus=new DefaultMutableTreeNode("Manage Bus");
         DefaultMutableTreeNode manage_route=new DefaultMutableTreeNode("Manage Route");
+        DefaultMutableTreeNode manage_stop_route=new DefaultMutableTreeNode("Manage Stop Route");
+        DefaultMutableTreeNode manage_bus_maintenance=new DefaultMutableTreeNode("Manage Bus Maintenance");
 
         //Children of Booking Management
         DefaultMutableTreeNode add_booking=new DefaultMutableTreeNode("Add Booking");
@@ -54,6 +58,9 @@ public class ManageManagerPage extends JFrame{
         DefaultMutableTreeNode manage_pricing=new DefaultMutableTreeNode("Manage Pricing");
         DefaultMutableTreeNode view_seat=new DefaultMutableTreeNode("View Seat Occupancy");
         DefaultMutableTreeNode refund_manage=new DefaultMutableTreeNode("Refund Management");
+        DefaultMutableTreeNode manage_promocode=new DefaultMutableTreeNode("Manage PromoCode");
+        DefaultMutableTreeNode manage_tax=new DefaultMutableTreeNode("Manage Taxes");
+
 
         //Child of FeedBack Management
         DefaultMutableTreeNode view_feedback=new DefaultMutableTreeNode("View Feedback");
@@ -71,12 +78,16 @@ public class ManageManagerPage extends JFrame{
 
         busManagement.add(manage_bus);
         busManagement.add(manage_route);
+        busManagement.add(manage_stop_route);
+        busManagement.add(manage_bus_maintenance);
 
         bookingManagement.add(add_booking);
         bookingManagement.add(view_booking);
         bookingManagement.add(manage_pricing);
         bookingManagement.add(view_seat);
         bookingManagement.add(refund_manage);
+        bookingManagement.add(manage_promocode);
+        bookingManagement.add(manage_tax);
 
         feedbackManagement.add(view_feedback);
 
@@ -155,6 +166,25 @@ public class ManageManagerPage extends JFrame{
                             break;
                         case "Refund Management":
                             RefundManagementPage rmp=new RefundManagementPage();
+                            dispose();
+                            break;
+                        case "Manage PromoCode":
+                            ManagePromoCodePage mpcp=new ManagePromoCodePage();
+                            dispose();
+                            break;
+
+                        case "Manage Taxes":
+                            ManageTaxPage mtp=new ManageTaxPage();
+                            dispose();
+                            break;
+
+                        case "Manage Stop Route":
+                            ManageStopRoutePage mspp=new ManageStopRoutePage();
+                            dispose();
+                            break;
+
+                        case "Manage Bus Maintenance":
+                            ManageBusMaintenancePage mbmp=new ManageBusMaintenancePage();
                             dispose();
                             break;
 

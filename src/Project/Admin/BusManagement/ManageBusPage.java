@@ -7,6 +7,7 @@ import Project.Admin.UserMangement.ManageDriverPage;
 import Project.Admin.UserMangement.ManageManagerPage;
 import Project.Admin.UserMangement.ManageUserPage;
 import Project.Admin.ViewFeedbackPage;
+import Project.Database;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -17,12 +18,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.*;
 
 public class ManageBusPage extends JFrame {
     DefaultTableModel tableModel;
     JTable recTable;
+    Connection connection=Database.setConnection();
 
     public ManageBusPage() {
+
         JLabel label=new JLabel();
         label.setText("Manage Buses");
         label.setBounds(450,20,250,50);
@@ -51,6 +55,8 @@ public class ManageBusPage extends JFrame {
         //Children of Bus Management
         DefaultMutableTreeNode manage_bus=new DefaultMutableTreeNode("Manage Bus");
         DefaultMutableTreeNode manage_route=new DefaultMutableTreeNode("Manage Route");
+        DefaultMutableTreeNode manage_stop_route=new DefaultMutableTreeNode("Manage Stop Route");
+        DefaultMutableTreeNode manage_bus_maintenance=new DefaultMutableTreeNode("Manage Bus Maintenance");
 
         //Children of Booking Management
         DefaultMutableTreeNode add_booking=new DefaultMutableTreeNode("Add Booking");
@@ -58,6 +64,9 @@ public class ManageBusPage extends JFrame {
         DefaultMutableTreeNode manage_pricing=new DefaultMutableTreeNode("Manage Pricing");
         DefaultMutableTreeNode view_seat=new DefaultMutableTreeNode("View Seat Occupancy");
         DefaultMutableTreeNode refund_manage=new DefaultMutableTreeNode("Refund Management");
+        DefaultMutableTreeNode manage_promocode=new DefaultMutableTreeNode("Manage PromoCode");
+        DefaultMutableTreeNode manage_tax=new DefaultMutableTreeNode("Manage Taxes");
+
 
         //Child of FeedBack Management
         DefaultMutableTreeNode view_feedback=new DefaultMutableTreeNode("View Feedback");
@@ -75,12 +84,16 @@ public class ManageBusPage extends JFrame {
 
         busManagement.add(manage_bus);
         busManagement.add(manage_route);
+        busManagement.add(manage_stop_route);
+        busManagement.add(manage_bus_maintenance);
 
         bookingManagement.add(add_booking);
         bookingManagement.add(view_booking);
         bookingManagement.add(manage_pricing);
         bookingManagement.add(view_seat);
         bookingManagement.add(refund_manage);
+        bookingManagement.add(manage_promocode);
+        bookingManagement.add(manage_tax);
 
         feedbackManagement.add(view_feedback);
 
@@ -161,6 +174,25 @@ public class ManageBusPage extends JFrame {
                             RefundManagementPage rmp=new RefundManagementPage();
                             dispose();
                             break;
+                        case "Manage PromoCode":
+                            ManagePromoCodePage mpcp=new ManagePromoCodePage();
+                            dispose();
+                            break;
+
+                        case "Manage Taxes":
+                            ManageTaxPage mtp=new ManageTaxPage();
+                            dispose();
+                            break;
+
+                        case "Manage Stop Route":
+                            ManageStopRoutePage mspp=new ManageStopRoutePage();
+                            dispose();
+                            break;
+
+                        case "Manage Bus Maintenance":
+                            ManageBusMaintenancePage mbmp=new ManageBusMaintenancePage();
+                            dispose();
+                            break;
 
                         case "View Feedback":
                             ViewFeedbackPage vfp=new ViewFeedbackPage();
@@ -203,66 +235,88 @@ public class ManageBusPage extends JFrame {
         dashboardTree.setCellRenderer(renderer);
 
 
-        JLabel regSearchLabel =new JLabel();
-        regSearchLabel.setText("Registration Number:");
-        regSearchLabel.setBounds(240,80,180,50);
-        regSearchLabel.setFont(new Font("Arial",Font.BOLD,15));
-        regSearchLabel.setForeground(Color.orange);
-
-        JTextField regSearchTxt =new JTextField();
-        regSearchTxt.setBounds(430,90,150,30);
 
         JLabel busIDSearchLabel =new JLabel();
         busIDSearchLabel.setText(" Bus ID:");
-        busIDSearchLabel.setBounds(240,130,180,50);
+        busIDSearchLabel.setBounds(300,80,180,50);
         busIDSearchLabel.setFont(new Font("Arial",Font.BOLD,15));
         busIDSearchLabel.setForeground(Color.orange);
 
         JTextField busIDSearchTxt =new JTextField();
-        busIDSearchTxt.setBounds(430,140,150,30);
+        busIDSearchTxt.setBounds(390,90,150,30);
 
 
         JButton searchButton=new JButton("Search");
-        searchButton.setBounds(400,200,100,30);
+        searchButton.setBounds(580,90,100,30);
         searchButton.setBackground(Color.cyan);
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                /*
-                String val= cnicSearchTxt.getText();
+
+                String busid=busIDSearchTxt.getText();
                 boolean found=false;
                 for (int i = 0; i < tableModel.getRowCount(); i++)
                 {
-                    if (tableModel.getValueAt(i, 4).equals(val))
+
+                    if (tableModel.getValueAt(i,0).equals(busid))
                     {
-                        String message = "Employee ID: " + recTable.getValueAt(i, 0) + "\n" +
-                                "Name: " + recTable.getValueAt(i, 1) + "\n" +
-                                "License Number: " + recTable.getValueAt(i, 2) + "\n" +
-                                "Contact Number: " + recTable.getValueAt(i, 3) + "\n" +
-                                "CNIC No.: " + recTable.getValueAt(i, 4) + "\n" +
-                                "Address: " + recTable.getValueAt(i, 5)+"\n"+
-                                "Staus: "+recTable.getValueAt(i,6);
-                        JOptionPane.showMessageDialog(null, message, "Record Found", JOptionPane.INFORMATION_MESSAGE);
+                        String query="Select * from busDummy where busID=?";
+                        try {
+
+                            PreparedStatement pst=connection.prepareStatement(query);
+                            pst.setInt(1,Integer.parseInt(busid));
+                            ResultSet rs=pst.executeQuery();
+                            tableModel.setRowCount(0);
+                            while (rs.next())
+                            {
+                                int id=rs.getInt("BusID");
+                                int Mgrid=rs.getInt("ManagerID");
+                                String BusName=rs.getString("BusName");
+                                String BusCompany=rs.getString("BusCompany");
+                                String model=rs.getString("Model");
+                                String registrationNo=rs.getString("RegistrationNo");
+                                String chassisNo=rs.getString("ChassisNo");
+                                int econ=rs.getInt("EconomySeats");
+                                int lux=rs.getInt("LuxurySeats");
+                                int fc=rs.getInt("FirstClassSeats");
+                                int total=rs.getInt("TotalSeats");
+                                String availability=rs.getString("Availability");
+
+                                String sID=Integer.toString(id);
+                                String mgrid=Integer.toString(Mgrid);
+                                String EconomySeats=Integer.toString(econ);
+                                String LuxurySeats=Integer.toString(lux);
+                                String firstClassSeats=Integer.toString(fc);
+                                String totalCapacity=Integer.toString(total);
+                                String economy = generateSeatRange("E", 1, econ);
+                                String luxury = generateSeatRange("L", 1, lux);
+                                String firstclass = generateSeatRange("F", 1, fc);
+
+                                String[] data={sID,BusCompany,BusName,model,registrationNo,chassisNo,EconomySeats,LuxurySeats,firstClassSeats,totalCapacity,
+                                        economy,luxury,firstclass,mgrid,availability};
+                                tableModel.addRow(data);
+                            }
+                        }
+                        catch (SQLException ex)
+                        {
+                            throw new RuntimeException(ex);
+                        }
 
                         found = true;
                         break;
                     }
                 }
-                if (!found)
-                {
-                    JOptionPane.showMessageDialog(null, "Record with CNIC number " + val + " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                if (!found) {
+                    JOptionPane.showMessageDialog(null, "Record with Bus ID " +busid+ " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
                 }
 
-                 */
             }
-
-
         });
 
         JButton addButton =new JButton();
         addButton.setText("+ Add");
-        addButton.setBounds(240,260,80,30);
+        addButton.setBounds(240,160,80,30);
         addButton.setBackground(Color.GREEN);
         addButton.addActionListener(new ActionListener() {
             @Override
@@ -274,7 +328,7 @@ public class ManageBusPage extends JFrame {
 
         JButton removeButton =new JButton();
         removeButton.setText("- Remove");
-        removeButton.setBounds(330,260,90,30);
+        removeButton.setBounds(330,160,90,30);
         removeButton.setBackground(Color.RED);
         removeButton.addActionListener(new ActionListener() {
             @Override
@@ -288,7 +342,7 @@ public class ManageBusPage extends JFrame {
 
         JButton editButton =new JButton();
         editButton.setText("Edit");
-        editButton.setBounds(430,260,90,30);
+        editButton.setBounds(430,160,90,30);
         editButton.setBackground(Color.PINK);
         editButton.addActionListener(new ActionListener() {
             @Override
@@ -300,31 +354,60 @@ public class ManageBusPage extends JFrame {
 
 
         JPanel tabPanel=new JPanel();
-        tabPanel.setBounds(250,300,580,300);
+        tabPanel.setBounds(250,210,580,350);
         tabPanel.setLayout(null);
 
-        String[][] data = {
-                {"12345", "ABC Bus Company",  "Super Express",  "XYZ Model", "ABCD1234",    "CHAS123456", "50", "20",  "10",
-                "80", "1-10", "21-40", "41-60", "Active" },
-                {"12345", "ABC Bus Company",  "Super Express",  "XYZ Model", "ABCD1234",    "CHAS123456", "50", "20",  "10",
-                "80", "1-10", "21-40", "41-60", "Active" },
-                {"12345", "ABC Bus Company",  "Super Express",  "XYZ Model", "ABCD1234",    "CHAS123456", "50", "20",  "10",
-                "80", "1-10", "21-40", "41-60", "Active" },
-                {"12345", "ABC Bus Company",  "Super Express",  "XYZ Model", "ABCD1234",    "CHAS123456", "50", "20",  "10",
-                "80", "1-10", "21-40", "41-60", "Active" },
-                {"5", "ABC Bus Company",  "Super Express",  "XYZ Model", "5",    "CHAS123456", "50", "20",  "10",
-                "80", "1-10", "21-40", "41-60", "Active" }
-
-        };
         String[] column={"Bus ID","Bus Company","Bus Name","Model No","Registration Number","Chassis Number","Economy Seats","Luxury Seats"
-                ,"First-Class Seats","Total Capacity","Economy Seat No.","Luxury Seat No.","First-Class Seat No.","Availability"};
+                ,"First-Class Seats","Total Capacity","Economy Seat No.","Luxury Seat No.","First-Class Seat No.","ManagerID","Availability"};
 
-        tableModel=new DefaultTableModel(data,column);
+        tableModel=new DefaultTableModel(column,0);
         recTable=new JTable(tableModel);
         recTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // This ensures horizontal scrolling
 
+        String query="Select * from busdummy";
+        try {
+            PreparedStatement ps=connection.prepareStatement(query);
+            ResultSet rs=ps.executeQuery();
+            while(rs.next()){
+
+                int id=rs.getInt("BusID");
+                int Mgrid=rs.getInt("ManagerID");
+                String BusName=rs.getString("BusName");
+                String BusCompany=rs.getString("BusCompany");
+                String model=rs.getString("Model");
+                String registrationNo=rs.getString("RegistrationNo");
+                String chassisNo=rs.getString("ChassisNo");
+                int econ=rs.getInt("EconomySeats");
+                int lux=rs.getInt("LuxurySeats");
+                int fc=rs.getInt("FirstClassSeats");
+                int total=rs.getInt("TotalSeats");
+                String availability=rs.getString("Availability");
+
+                String sID=Integer.toString(id);
+                String mgrid=Integer.toString(Mgrid);
+                String EconomySeats=Integer.toString(econ);
+                String LuxurySeats=Integer.toString(lux);
+                String firstClassSeats=Integer.toString(fc);
+                String totalCapacity=Integer.toString(total);
+                String economy = generateSeatRange("E", 1, econ);
+                String luxury = generateSeatRange("L", 1, lux);
+                String firstclass = generateSeatRange("F", 1, fc);
+
+                String[] data={sID,BusCompany,BusName,model,registrationNo,chassisNo,EconomySeats,LuxurySeats,firstClassSeats,totalCapacity,
+                        economy,luxury,firstclass,mgrid,availability};
+                tableModel.addRow(data);
+
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+
+
+
+
         JScrollPane scrollPane=new JScrollPane(recTable);
-        scrollPane.setBounds(1,1,580,300);
+        scrollPane.setBounds(1,1,580,350);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
@@ -357,8 +440,6 @@ public class ManageBusPage extends JFrame {
 
         add(label);
         add(menuPanel);
-        add(regSearchLabel);
-        add(regSearchTxt);
         add(busIDSearchLabel);
         add(busIDSearchTxt);
         add(searchButton);
@@ -377,6 +458,7 @@ public class ManageBusPage extends JFrame {
         addDialog.getContentPane().setBackground(Color.darkGray);
         addDialog.setSize(500, 650);
         addDialog.setLocationRelativeTo(null);
+        addDialog.setResizable(false);
 
         JLabel addRecLabel=new JLabel();
         addRecLabel.setText("Add New Record");
@@ -384,14 +466,14 @@ public class ManageBusPage extends JFrame {
         addRecLabel.setForeground(Color.orange);
         addRecLabel.setBounds(150, 30,240,30);
 
-        JLabel busIDLabel =new JLabel();
-        busIDLabel.setText("Bus ID:");
-        busIDLabel.setBounds(10,100,220,30);
-        busIDLabel.setFont(new Font("Arial",Font.BOLD,20));
-        busIDLabel.setForeground(Color.orange);
+        JLabel managerIDLabel =new JLabel();
+        managerIDLabel.setText("Manager ID:");
+        managerIDLabel.setBounds(10,100,220,30);
+        managerIDLabel.setFont(new Font("Arial",Font.BOLD,20));
+        managerIDLabel.setForeground(Color.orange);
 
-        JTextField busIDTxt =new JTextField();
-        busIDTxt.setBounds(230,100,150,30);
+        JTextField managerIDTxt =new JTextField();
+        managerIDTxt.setBounds(230,100,150,30);
 
 
         JLabel busCompLabel =new JLabel();
@@ -466,33 +548,83 @@ public class ManageBusPage extends JFrame {
         JTextField firstClassTxt =new JTextField();
         firstClassTxt.setBounds(230,500,70,30);
 
+
         JButton addButton=new JButton("Add");
         addButton.setBounds(150,550,100,40);
         addButton.setBackground(Color.cyan);
         addButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent e)
+            {
+                int maxVal=0;
 
+                int busID;
                 int economySeat = Integer.parseInt(economyTxt.getText());
                 int luxurySeat = Integer.parseInt(luxuryTxt.getText());
                 int firstSeat = Integer.parseInt(firstClassTxt.getText());
                 int totalSeat=economySeat+luxurySeat+firstSeat;
+                try{
+                    Connection connection = Database.setConnection();
+                    String insertQuery = "INSERT INTO busdummy (ManagerID,BusCompany,BusName,Model, RegistrationNo,ChassisNo, EconomySeats, LuxurySeats, FirstClassSeats, TotalSeats,Availability) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+                    PreparedStatement psmt= connection.prepareStatement(insertQuery);
+                    if(managerIDTxt.getText().equals(""))
+                    {
+                        psmt.setInt(1,0);
+
+                    }
+                    else {
+                        int mangID=Integer.parseInt(managerIDTxt.getText());
+                        psmt.setInt(1,mangID);
+
+                    }
+                    psmt.setString(2,busCompTxt.getText());
+                    psmt.setString(3,busNameTxt.getText());
+                    psmt.setString(4,modelTxt.getText());
+                    psmt.setString(5,regNoTxt.getText());
+                    psmt.setString(6,chassisNoTxt.getText());
+                    psmt.setInt(7,economySeat);
+                    psmt.setInt(8,luxurySeat);
+                    psmt.setInt(9,firstSeat);
+                    psmt.setInt(10,totalSeat);
+                    psmt.setString(11,"Disable");
+                    psmt.executeUpdate();
+
+
+                    String query="Select busID from busDummy ";
+                    PreparedStatement pst = connection.prepareStatement(query);
+                    ResultSet rs = pst.executeQuery();
+                    while(rs.next()){
+
+                        busID=rs.getInt(1);
+                        if(busID>maxVal){
+                            maxVal=busID;
+
+                        }
+                    }
+
+                } catch (SQLException ex)
+                {
+                    throw new RuntimeException(ex);
+                }
 
                 String economySeats = generateSeatRange("E", 1, economySeat);
                 String luxurySeats = generateSeatRange("L", 1, luxurySeat);
                 String firstClassSeats = generateSeatRange("F", 1, firstSeat);
 
-                String[] row={busIDTxt.getText(), busCompTxt.getText(), busNameTxt.getText(), modelTxt.getText(), regNoTxt.getText(), chassisNoTxt.getText(),
-                        Integer.toString(economySeat), Integer.toString(luxurySeat), Integer.toString(firstSeat), Integer.toString(totalSeat), economySeats,luxurySeats,firstClassSeats,"Active"};
+
+                String[] row={Integer.toString(maxVal), busCompTxt.getText(), busNameTxt.getText(), modelTxt.getText(), regNoTxt.getText(), chassisNoTxt.getText(),
+                        Integer.toString(economySeat), Integer.toString(luxurySeat), Integer.toString(firstSeat), Integer.toString(totalSeat),
+                        economySeats,luxurySeats,firstClassSeats,managerIDTxt.getText(),"Active"};
 
                 tableModel.addRow(row);
+
                 addDialog.dispose();
             }
         });
 
         addDialog.add(addRecLabel);
-        addDialog.add(busIDLabel);
-        addDialog.add(busIDTxt);
+        addDialog.add(managerIDLabel);
+        addDialog.add(managerIDTxt);
         addDialog.add(busNameLabel);
         addDialog.add(busNameTxt);
         addDialog.add(busCompLabel);
@@ -511,7 +643,6 @@ public class ManageBusPage extends JFrame {
         addDialog.add(firstClassTxt);
         addDialog.add(addButton);
 
-        addDialog.setResizable(false);
         addDialog.setVisible(true);
 
     }
@@ -532,60 +663,61 @@ public class ManageBusPage extends JFrame {
         addRecLabel.setBounds(100, 30,240,30);
 
 
-        JLabel regNoLabel =new JLabel();
-        regNoLabel.setText("Registration Number:");
-        regNoLabel.setBounds(10,100,180,30);
-        regNoLabel.setFont(new Font("Arial",Font.BOLD,17));
-        regNoLabel.setForeground(Color.orange);
-
-        JTextField regNoTxt =new JTextField();
-        regNoTxt.setBounds(200,100,150,30);
-
         JLabel busIDLabel =new JLabel();
         busIDLabel.setText("Bus ID:");
-        busIDLabel.setBounds(10,150,180,30);
+        busIDLabel.setBounds(10,100,180,30);
         busIDLabel.setFont(new Font("Arial",Font.BOLD,17));
         busIDLabel.setForeground(Color.orange);
 
         JTextField busIDTxt =new JTextField();
-        busIDTxt.setBounds(200,150,150,30);
+        busIDTxt.setBounds(200,100,150,30);
+
 
         JButton searchButton=new JButton("Search");
-        searchButton.setBounds(130,220,100,30);
+        searchButton.setBounds(130,170,100,30);
         searchButton.setBackground(Color.cyan);
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                String regVal= regNoTxt.getText();
                 String idVal=busIDTxt.getText();
                 boolean found=false;
                 for (int i = 0; i < tableModel.getRowCount(); i++)
                 {
-                    if (tableModel.getValueAt(i, 4).equals(regVal)&&tableModel.getValueAt(i,0).equals(idVal))
-                    { // Checking Reg number at index 4 & Bus ID at index 0
+
+                    if (tableModel.getValueAt(i,0).equals(idVal))
+                    {
+                        String delQuery="DELETE FROM busDummy WHERE BusID=?";
+
+                        try
+                        {
+                            PreparedStatement preparedStatement=connection.prepareStatement(delQuery);
+                            preparedStatement.setInt(1,Integer.parseInt(idVal));
+                            preparedStatement.executeUpdate();
+
+                        }
+                        catch (SQLException ex)
+                        {
+                            throw new RuntimeException(ex);
+                        }
+
                         tableModel.removeRow(i);
                         found = true;
                         break;
                     }
                 }
                 if (!found) {
-                    JOptionPane.showMessageDialog(removeDialog, "Record with Registration Number " + regVal +
-                            " & ID: " +idVal+ " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(removeDialog, "Record with Bus ID " +idVal+ " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
                 }
                 else {
-                    JOptionPane.showMessageDialog(removeDialog, "Record with Registration Number " + regVal +
-                            " & ID: " +idVal+ " removed successfully.", "Record Removed", JOptionPane.INFORMATION_MESSAGE);
+
+                    JOptionPane.showMessageDialog(removeDialog, "Record with Bus ID " +idVal+ " removed successfully.", "Record Removed", JOptionPane.INFORMATION_MESSAGE);
                 }
             }
-
-
 
         });
 
         removeDialog.add(addRecLabel);
-        removeDialog.add(regNoLabel);
-        removeDialog.add(regNoTxt);
         removeDialog.add(busIDLabel);
         removeDialog.add(busIDTxt);
         removeDialog.add(searchButton);
@@ -603,6 +735,8 @@ public class ManageBusPage extends JFrame {
         editDialog.getContentPane().setBackground(Color.darkGray);
         editDialog.setSize(500, 600);
         editDialog.setLocationRelativeTo(null);
+        editDialog.setResizable(false);
+
 
         JLabel editRecLabel =new JLabel();
         editRecLabel.setText("Edit Record");
@@ -611,88 +745,79 @@ public class ManageBusPage extends JFrame {
         editRecLabel.setBounds(150, 30,240,30);
 
 
-        JLabel regNoLabel =new JLabel();
-        regNoLabel.setText("Registration Number:");
-        regNoLabel.setBounds(10,100,230,30);
-        regNoLabel.setFont(new Font("Arial",Font.BOLD,20));
-        regNoLabel.setForeground(Color.orange);
-
-        JTextField regNoTxt=new JTextField();
-        regNoTxt.setBounds(230,105,150,30);
-
         JLabel busIDLabel =new JLabel();
         busIDLabel.setText("Bus ID:");
-        busIDLabel.setBounds(10,150,230,30);
+        busIDLabel.setBounds(50,100,100,30);
         busIDLabel.setFont(new Font("Arial",Font.BOLD,20));
         busIDLabel.setForeground(Color.orange);
 
         JTextField busIDTxt=new JTextField();
-        busIDTxt.setBounds(230,155,150,30);
+        busIDTxt.setBounds(150,100,150,30);
 
         JCheckBox economyCheckbox =new JCheckBox("Economy Seats");
         economyCheckbox.setBackground( Color.darkGray);
         economyCheckbox.setForeground(Color.orange);
-        economyCheckbox.setBounds(10,250,130,30);
+        economyCheckbox.setBounds(10,150,130,30);
         economyCheckbox.setVisible(false);
 
 
         JCheckBox luxuryCheckbox =new JCheckBox("Luxury Seats");
         luxuryCheckbox.setBackground( Color.darkGray);
         luxuryCheckbox.setForeground(Color.orange);
-        luxuryCheckbox.setBounds(140,250,110,30);
+        luxuryCheckbox.setBounds(140,150,110,30);
         luxuryCheckbox.setVisible(false);
 
         JCheckBox firstClassCheckbox =new JCheckBox("First-Class Seats");
         firstClassCheckbox.setBackground( Color.darkGray);
         firstClassCheckbox.setForeground(Color.orange);
-        firstClassCheckbox.setBounds(250,250,130,30);
+        firstClassCheckbox.setBounds(250,150,130,30);
         firstClassCheckbox.setVisible(false);
 
 
         JCheckBox availabilityCheckbox =new JCheckBox("Availability");
         availabilityCheckbox.setBackground( Color.darkGray);
         availabilityCheckbox.setForeground(Color.orange);
-        availabilityCheckbox.setBounds(380,250,120,30);
+        availabilityCheckbox.setBounds(380,150,120,30);
         availabilityCheckbox.setVisible(false);
 
 
         JLabel economySeatLabel=new JLabel();
         economySeatLabel.setText("Economy Seats:");
-        economySeatLabel.setBounds(10,300,180,30);
+        economySeatLabel.setBounds(10,200,180,30);
         economySeatLabel.setFont(new Font("Arial",Font.BOLD,20));
         economySeatLabel.setForeground(Color.orange);
         economySeatLabel.setVisible(false);
 
         JTextField economySeatTxt =new JTextField();
-        economySeatTxt.setBounds(200,300,150,30);
+        economySeatTxt.setBounds(200,200,150,30);
         economySeatTxt.setVisible(false);
 
         JLabel luxurySeatLabel =new JLabel();
         luxurySeatLabel.setText("Luxury Seat:");
-        luxurySeatLabel.setBounds(10,350,180,30);
+        luxurySeatLabel.setBounds(10,250,180,30);
         luxurySeatLabel.setFont(new Font("Arial",Font.BOLD,20));
         luxurySeatLabel.setForeground(Color.orange);
         luxurySeatLabel.setVisible(false);
 
         JTextField luxurySeatTxt =new JTextField();
-        luxurySeatTxt.setBounds(200,350,150,30);
+        luxurySeatTxt.setBounds(200,250,150,30);
         luxurySeatTxt.setVisible(false);
 
 
         JLabel firstClassSeatLabel=new JLabel();
         firstClassSeatLabel.setText("First-Class Seat:");
-        firstClassSeatLabel.setBounds(10,400,180,30);
+        firstClassSeatLabel.setBounds(10,300,180,30);
         firstClassSeatLabel.setFont(new Font("Arial",Font.BOLD,20));
         firstClassSeatLabel.setForeground(Color.orange);
         firstClassSeatLabel.setVisible(false);
 
         JTextField firstClassSeatTxt =new JTextField();
-        firstClassSeatTxt.setBounds(200,400,150,30);
+        firstClassSeatTxt.setBounds(200,300,150,30);
         firstClassSeatTxt.setVisible(false);
 
         JLabel availabilityLabel =new JLabel();
         availabilityLabel.setText("Select Availability:");
-        availabilityLabel.setBounds(10,450,180,30);
+        availabilityLabel.setBounds(10,350,180,30);
         availabilityLabel.setFont(new Font("Arial",Font.BOLD,20));
         availabilityLabel.setForeground(Color.orange);
         availabilityLabel.setVisible(false);
@@ -700,25 +825,24 @@ public class ManageBusPage extends JFrame {
         String[] avail={"-","Active","Not Active"};
 
         JComboBox availabilityCombobox =new JComboBox<>(avail);
-        availabilityCombobox.setBounds(200,450,150,35);
+        availabilityCombobox.setBounds(200,350,150,35);
         availabilityCombobox.setBackground(Color.orange);
         availabilityCombobox.setVisible(false);
 
 
         JButton searchButton=new JButton("Search");
-        searchButton.setBounds(130,200,100,30);
+        searchButton.setBounds(330,100,100,30);
         searchButton.setBackground(Color.cyan);
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                String regNoVal=regNoTxt.getText();
-                String busIDVal =regNoTxt.getText();
+                String busIDVal =busIDTxt.getText();
 
                 boolean found=false;
                 for (int i = 0; i < tableModel.getRowCount(); i++)
                 {
-                    if (tableModel.getValueAt(i, 0).equals(busIDVal)&&tableModel.getValueAt(i, 4).equals(regNoVal))
+                    if (tableModel.getValueAt(i, 0).equals(busIDVal))
                     {
                         firstClassCheckbox.setVisible(true);
                         economyCheckbox.setVisible(true);
@@ -731,15 +855,14 @@ public class ManageBusPage extends JFrame {
                 }
                 if (!found)
                 {
-                    JOptionPane.showMessageDialog(editDialog, "Record with Registration Number " + regNoVal + " & ID: " + busIDVal + " not found.",
-                            "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(editDialog, "Record with Bus ID "+ busIDVal +" not found.","Record Not Found", JOptionPane.WARNING_MESSAGE);
                 }
             }
         });
 
 
         JButton editButton=new JButton("Edit");
-        editButton.setBounds(170,500,100,30);
+        editButton.setBounds(170,450,100,30);
         editButton.setBackground(Color.cyan);
         editButton.setVisible(false);
 
@@ -747,20 +870,19 @@ public class ManageBusPage extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                String regNoVal=regNoTxt.getText();
-                String busIDVal =regNoTxt.getText();
+                String busIDVal =busIDTxt.getText();
                 for (int i = 0; i < tableModel.getRowCount(); i++)
                 {
-                    if (tableModel.getValueAt(i, 0).equals(busIDVal)&&tableModel.getValueAt(i, 4).equals(regNoVal))
+                    if (tableModel.getValueAt(i, 0).equals(busIDVal))
                     {
 
                         String status=(String) availabilityCombobox.getSelectedItem();
 
                         if(economyCheckbox.isSelected())
                         {
-
                             recTable.setValueAt(economySeatTxt.getText(), i, 6); // Update Economy Seat
                             int econSeat= Integer.parseInt (economySeatTxt.getText());
+                            int id=Integer.parseInt(busIDVal);
                             int luxurySeats= Integer.parseInt( recTable.getValueAt(i,7).toString());
                             int firstCSeat=Integer.parseInt( recTable.getValueAt(i,8).toString());
                             int totalSeats=0;
@@ -769,12 +891,25 @@ public class ManageBusPage extends JFrame {
 
                             String economySeats = generateSeatRange("E", 1, econSeat);
                             recTable.setValueAt(economySeats,i,10);
+
+                            String editQuery="update BusDummy set EconomySeats=? where BusID=? ";
+                            try {
+                                PreparedStatement psmt=connection.prepareStatement(editQuery);
+                                psmt.setInt(1,econSeat);
+                                psmt.setInt(2,id);
+                                psmt.executeUpdate();
+                                System.out.println("Updated");
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
+
+
                         }
 
                         if(luxuryCheckbox.isSelected())
                         {
                             recTable.setValueAt(luxurySeatTxt.getText(), i, 7); // Update Luxury Seat
-
+                            int id=Integer.parseInt(busIDVal);
                             int econSeat= Integer.parseInt( recTable.getValueAt(i,6).toString());
                             int luxurySeats= Integer.parseInt(luxurySeatTxt.getText());
                             int firstCSeat=Integer.parseInt( recTable.getValueAt(i,8).toString());
@@ -782,13 +917,26 @@ public class ManageBusPage extends JFrame {
                             totalSeats=firstCSeat+econSeat+luxurySeats;
                             recTable.setValueAt(Integer.toString(totalSeats), i, 9);
 
+
                             String luxurySeat = generateSeatRange("L", 1, luxurySeats);
                             recTable.setValueAt(luxurySeat,i,11);
+
+                            String editQuery="update BusDummy set LuxurySeats=? where BusID=? ";
+                            try {
+                                PreparedStatement psmt=connection.prepareStatement(editQuery);
+                                psmt.setInt(1,luxurySeats);
+                                psmt.setInt(2,id);
+                                psmt.executeUpdate();
+                                System.out.println("Updated");
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
 
                         }
 
                         if(firstClassCheckbox.isSelected())
                         {
+                            int id=Integer.parseInt(busIDVal);
                             recTable.setValueAt(firstClassSeatTxt.getText(), i, 8); // Update  First Class Seat
 
                             int econSeats= Integer.parseInt( recTable.getValueAt(i,6).toString());
@@ -800,12 +948,32 @@ public class ManageBusPage extends JFrame {
 
                             String firstClassSeats = generateSeatRange("F", 1, firstCSeat);
                             recTable.setValueAt(firstClassSeats,i,12);
-
+                            String editQuery="update BusDummy set FirstClassSeats=? where BusID=? ";
+                            try {
+                                PreparedStatement psmt=connection.prepareStatement(editQuery);
+                                psmt.setInt(1,luxurySeats);
+                                psmt.setInt(2,id);
+                                psmt.executeUpdate();
+                                System.out.println("Updated");
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
                         }
 
                         if(availabilityCheckbox.isSelected())
                         {
-                            recTable.setValueAt(status, i, 13); // Update Status
+                            int id=Integer.parseInt(busIDVal);
+                            recTable.setValueAt(status, i, 14); // Update Status
+                            String editQuery="update BusDummy set Availability=? where BusID=? ";
+                            try {
+                                PreparedStatement psmt=connection.prepareStatement(editQuery);
+                                psmt.setString(1,status);
+                                psmt.setInt(2,id);
+                                psmt.executeUpdate();
+                                System.out.println("Updated");
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
                         }
 
                         editDialog.dispose();
@@ -814,8 +982,6 @@ public class ManageBusPage extends JFrame {
                 }
             }
         });
-
-
 
         economyCheckbox.addActionListener(new ActionListener() {
             @Override
@@ -916,8 +1082,6 @@ public class ManageBusPage extends JFrame {
 
 
         editDialog.add(editRecLabel);
-        editDialog.add(regNoLabel);
-        editDialog.add(regNoTxt);
         editDialog.add(busIDLabel);
         editDialog.add(busIDTxt);
         editDialog.add(searchButton);
@@ -936,7 +1100,6 @@ public class ManageBusPage extends JFrame {
         editDialog.add(editButton);
 
 
-        editDialog.setResizable(false);
         editDialog.setVisible(true);
 
     }

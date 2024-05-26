@@ -12,29 +12,19 @@ import Project.Admin.UserMangement.ManageUserPage;
 import Project.Admin.ViewFeedbackPage;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.List;
 
-public class RefundManagementPage extends JFrame{
+public class ManageTaxPage extends JFrame {
 
-    DefaultTableModel tableModel;
-    JTable recTable;
-
-    public RefundManagementPage() {
-
+    public ManageTaxPage()
+    {
         JLabel label=new JLabel();
-        label.setText("Manage Refunds");
-        label.setBounds(450,20,250,50);
+        label.setText("Manage Tax");
+        label.setBounds(400,20,320,50);
         label.setFont(new Font("Arial",Font.BOLD,25));
         label.setForeground(Color.orange);
 
@@ -239,112 +229,49 @@ public class RefundManagementPage extends JFrame{
         // Set the custom renderer to the JTree
         dashboardTree.setCellRenderer(renderer);
 
+        JLabel busIDSearchLabel =new JLabel();
+        busIDSearchLabel.setText(" Bus ID:");
+        busIDSearchLabel.setBounds(300,80,180,50);
+        busIDSearchLabel.setFont(new Font("Arial",Font.BOLD,15));
+        busIDSearchLabel.setForeground(Color.orange);
 
-        JLabel refundIDLabel =new JLabel();
-        refundIDLabel.setText("Refund ID:");
-        refundIDLabel.setBounds(240,80,150,50);
-        refundIDLabel.setFont(new Font("Arial",Font.BOLD,18));
-        refundIDLabel.setForeground(Color.orange);
+        JTextField busIDSearchTxt =new JTextField();
+        busIDSearchTxt.setBounds(390,90,150,30);
 
-        JTextField refundIDTxt =new JTextField();
-        refundIDTxt.setBounds(400,90,150,30);
 
         JButton searchButton=new JButton("Search");
-        searchButton.setBounds(570,90,100,30);
+        searchButton.setBounds(580,90,100,30);
         searchButton.setBackground(Color.cyan);
-        searchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
 
-            }
-        });
+        JButton addButton =new JButton();
+        addButton.setText("+ Add");
+        addButton.setBounds(240,160,80,30);
+        addButton.setBackground(Color.GREEN);
 
         JButton removeButton =new JButton();
         removeButton.setText("- Remove");
-        removeButton.setBounds(240,170,90,30);
+        removeButton.setBounds(330,160,90,30);
         removeButton.setBackground(Color.RED);
-        removeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
 
-                removeRecord();
-            }
-        });
+
+
 
         JButton editButton =new JButton();
         editButton.setText("Edit");
-        editButton.setBounds(350,170,90,30);
+        editButton.setBounds(430,160,90,30);
         editButton.setBackground(Color.PINK);
-        editButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
 
-                editRecord();
-            }
-        });
+
 
         JPanel tabPanel=new JPanel();
-        tabPanel.setBounds(240,220,600,350);
+        tabPanel.setBounds(250,210,580,350);
         tabPanel.setLayout(null);
 
-        String[][] data={
-                {"1","5","X","Y","5","abc#abc","22-22-22","xyz","","Accept"},
-                {"3","2","C","D","9","abc#abc","22-22-22","efg","","Decline"},
-                {"2","9","A","B","2","abc#abc","22-22-22","abc","","Accept"}
-        };
-
-        String[]column={"Refund ID","CusID","First Name","Last Name","OrderID","Email","Booking Date","Reason","Additional Note","Decision"};
-
-        tableModel=new DefaultTableModel(data,column);
-        recTable=new JTable(tableModel);
-        recTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // This ensures horizontal
-
-        recTable.getColumnModel().getColumn(0).setPreferredWidth(90);
-        recTable.getColumnModel().getColumn(1).setPreferredWidth(120);
-        recTable.getColumnModel().getColumn(2).setPreferredWidth(120);
-        recTable.getColumnModel().getColumn(3).setPreferredWidth(90);
-        recTable.getColumnModel().getColumn(4).setPreferredWidth(150);
-        recTable.getColumnModel().getColumn(5).setPreferredWidth(130);
-        recTable.getColumnModel().getColumn(6).setPreferredWidth(180);
-        recTable.getColumnModel().getColumn(7).setPreferredWidth(250);
-        recTable.getColumnModel().getColumn(8).setPreferredWidth(90);
+        String[] column={"Bus ID","Bus Company","Bus Name","Model No","Registration Number","Chassis Number","Economy Seats","Luxury Seats"
+                ,"First-Class Seats","Total Capacity","Economy Seat No.","Luxury Seat No.","First-Class Seat No.","ManagerID","Availability"};
 
 
-        JLabel sortbyLabel=new JLabel("(Sort By)");
-        sortbyLabel.setBounds(470,140,50,30);
-        sortbyLabel.setFont(new Font("Arial",Font.PLAIN,12));
-        sortbyLabel.setForeground(Color.orange);
-
-
-        String[] sortCombo={"-","By Refund ID(Ascending)","By Refund ID(Descending)"};
-        JComboBox sortComboBox=new JComboBox<>(sortCombo);
-        sortComboBox.setBounds(470,170,180,30);
-
-        sortComboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String sort=(String) sortComboBox.getSelectedItem();
-                switch (sort)
-                {
-                    case "By Refund ID(Ascending)":
-                        refundIDAsc();
-                        break;
-
-                    case "By Refund ID(Descending)":
-                        refundIDDsc();
-                        break;
-                }
-
-            }
-        });
-
-        JScrollPane scrollPane=new JScrollPane(recTable);
-        scrollPane.setBounds(1,1,600,350);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        tabPanel.add(scrollPane);
-
-        setTitle("View Feedbacks");
+        setTitle("Manage Bus Page");
         setLayout(null);
         setSize(900, 650);
         getContentPane().setBackground(Color.darkGray);
@@ -356,128 +283,20 @@ public class RefundManagementPage extends JFrame{
 
         add(label);
         add(menuPanel);
-        add(refundIDLabel);
-        add(refundIDTxt);
+        add(busIDSearchLabel);
+        add(busIDSearchTxt);
         add(searchButton);
+        add(addButton);
         add(removeButton);
         add(editButton);
         add(tabPanel);
-        add(sortbyLabel);
-        add(sortComboBox);
-
-
-
-
-
-        setTitle("Manage Refund Page");
-        setLayout(null);
-        setSize(900, 650);
-        getContentPane().setBackground(Color.darkGray);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setResizable(false);
-        setVisible(true);
-
-
-        add(label);
-        add(menuPanel);
-
-
-    }
-    public void refundIDAsc(){
-        TableRowSorter<TableModel> sorter = new TableRowSorter<>(tableModel);
-        recTable.setRowSorter(sorter);
-        List<RowSorter.SortKey> sortKeys = new ArrayList<>();
-        int columnIndexToSort = 0;
-        sortKeys.add(new RowSorter.SortKey(columnIndexToSort, SortOrder.ASCENDING));
-        sorter.setSortKeys(sortKeys);
-        sorter.sort();
     }
 
-    public void refundIDDsc(){
-        TableRowSorter<TableModel> sorter = new TableRowSorter<>(tableModel);
-        recTable.setRowSorter(sorter);
-        List<RowSorter.SortKey> sortKeys = new ArrayList<>();
-        int columnIndexToSort = 0;
-        sortKeys.add(new RowSorter.SortKey(columnIndexToSort, SortOrder.DESCENDING));
-        sorter.setSortKeys(sortKeys);
-        sorter.sort();
-    }
 
-    public void removeRecord()
-    {
-        JDialog removeDialog = new JDialog(this, "Remove Record", true);
-        removeDialog.setLayout(null);
-        removeDialog.getContentPane().setBackground(Color.darkGray);
-        removeDialog.setSize(400, 350);
-        removeDialog.setLocationRelativeTo(null);
-        removeDialog.setResizable(false);
-
-
-        JLabel addRecLabel=new JLabel();
-        addRecLabel.setText("Remove Record");
-        addRecLabel.setFont(new Font("Arial",Font.BOLD,22));
-        addRecLabel.setForeground(Color.orange);
-        addRecLabel.setBounds(100, 30,240,30);
-
-
-        JLabel refundIDLabel =new JLabel();
-        refundIDLabel.setText("Refund ID:");
-        refundIDLabel.setBounds(10,100,180,30);
-        refundIDLabel.setFont(new Font("Arial",Font.BOLD,17));
-        refundIDLabel.setForeground(Color.orange);
-
-        JTextField refundIDTxt =new JTextField();
-        refundIDTxt.setBounds(200,100,150,30);
-
-
-        JButton searchButton=new JButton("Search");
-        searchButton.setBounds(130,170,100,30);
-        searchButton.setBackground(Color.cyan);
-        searchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                String IDVal = refundIDTxt.getText();
-                boolean found=false;
-                for (int i = 0; i < tableModel.getRowCount(); i++)
-                {
-                    if (tableModel.getValueAt(i, 0).equals(IDVal))
-                    {
-                        tableModel.removeRow(i);
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    JOptionPane.showMessageDialog(removeDialog, "Record with Refund ID " + IDVal +" not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
-                }
-                else {
-                    JOptionPane.showMessageDialog(removeDialog, "Record with Refund ID " + IDVal +  " removed successfully.", "Record Removed", JOptionPane.INFORMATION_MESSAGE);
-                }
-            }
-
-
-
-        });
-
-        removeDialog.add(addRecLabel);
-        removeDialog.add(refundIDLabel);
-        removeDialog.add(refundIDTxt);
-        removeDialog.add(searchButton);
-
-        removeDialog.setVisible(true);
-
-    }
-
-    public void editRecord()
-    {
-
-    }
 
 
     public static void main(String[] args)
     {
-        RefundManagementPage rmp=new RefundManagementPage();
+        ManageTaxPage mtp= new ManageTaxPage();
     }
 }

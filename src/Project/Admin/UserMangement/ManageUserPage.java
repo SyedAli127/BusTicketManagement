@@ -2,10 +2,13 @@ package Project.Admin.UserMangement;
 
 import Project.Admin.AdminDashboard;
 import Project.Admin.BookingManagement.*;
+import Project.Admin.BusManagement.ManageBusMaintenancePage;
 import Project.Admin.BusManagement.ManageBusPage;
 import Project.Admin.BusManagement.ManageRoutePage;
+import Project.Admin.BusManagement.ManageStopRoutePage;
 import Project.Admin.GenerateReportPage;
 import Project.Admin.ViewFeedbackPage;
+import Project.Database;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -16,6 +19,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+
+import java.sql.*;
+
 
 public class ManageUserPage extends JFrame {
 
@@ -35,8 +41,7 @@ public class ManageUserPage extends JFrame {
         menuPanel.setBounds(1,1,200,650);
         menuPanel.setLayout(null);
 
-
-        //Parents
+//Parents
         DefaultMutableTreeNode dashboard=new DefaultMutableTreeNode("Dashboard");
         DefaultMutableTreeNode userManagement=new DefaultMutableTreeNode("User Management");
         DefaultMutableTreeNode busManagement=new DefaultMutableTreeNode("Bus Management");
@@ -52,6 +57,8 @@ public class ManageUserPage extends JFrame {
         //Children of Bus Management
         DefaultMutableTreeNode manage_bus=new DefaultMutableTreeNode("Manage Bus");
         DefaultMutableTreeNode manage_route=new DefaultMutableTreeNode("Manage Route");
+        DefaultMutableTreeNode manage_stop_route=new DefaultMutableTreeNode("Manage Stop Route");
+        DefaultMutableTreeNode manage_bus_maintenance=new DefaultMutableTreeNode("Manage Bus Maintenance");
 
         //Children of Booking Management
         DefaultMutableTreeNode add_booking=new DefaultMutableTreeNode("Add Booking");
@@ -59,6 +66,9 @@ public class ManageUserPage extends JFrame {
         DefaultMutableTreeNode manage_pricing=new DefaultMutableTreeNode("Manage Pricing");
         DefaultMutableTreeNode view_seat=new DefaultMutableTreeNode("View Seat Occupancy");
         DefaultMutableTreeNode refund_manage=new DefaultMutableTreeNode("Refund Management");
+        DefaultMutableTreeNode manage_promocode=new DefaultMutableTreeNode("Manage PromoCode");
+        DefaultMutableTreeNode manage_tax=new DefaultMutableTreeNode("Manage Taxes");
+
 
         //Child of FeedBack Management
         DefaultMutableTreeNode view_feedback=new DefaultMutableTreeNode("View Feedback");
@@ -76,12 +86,16 @@ public class ManageUserPage extends JFrame {
 
         busManagement.add(manage_bus);
         busManagement.add(manage_route);
+        busManagement.add(manage_stop_route);
+        busManagement.add(manage_bus_maintenance);
 
         bookingManagement.add(add_booking);
         bookingManagement.add(view_booking);
         bookingManagement.add(manage_pricing);
         bookingManagement.add(view_seat);
         bookingManagement.add(refund_manage);
+        bookingManagement.add(manage_promocode);
+        bookingManagement.add(manage_tax);
 
         feedbackManagement.add(view_feedback);
 
@@ -162,6 +176,25 @@ public class ManageUserPage extends JFrame {
                             RefundManagementPage rmp=new RefundManagementPage();
                             dispose();
                             break;
+                        case "Manage PromoCode":
+                            ManagePromoCodePage mpcp=new ManagePromoCodePage();
+                            dispose();
+                            break;
+
+                        case "Manage Taxes":
+                            ManageTaxPage mtp=new ManageTaxPage();
+                            dispose();
+                            break;
+
+                        case "Manage Stop Route":
+                            ManageStopRoutePage mspp=new ManageStopRoutePage();
+                            dispose();
+                            break;
+
+                        case "Manage Bus Maintenance":
+                            ManageBusMaintenancePage mbmp=new ManageBusMaintenancePage();
+                            dispose();
+                            break;
 
                         case "View Feedback":
                             ViewFeedbackPage vfp=new ViewFeedbackPage();
@@ -204,14 +237,15 @@ public class ManageUserPage extends JFrame {
         dashboardTree.setCellRenderer(renderer);
 
 
-        JLabel userIDLabel =new JLabel();
-        userIDLabel.setText("User ID:");
-        userIDLabel.setBounds(240,80,150,50);
-        userIDLabel.setFont(new Font("Arial",Font.BOLD,18));
-        userIDLabel.setForeground(Color.orange);
 
-        JTextField userIDTxt =new JTextField();
-        userIDTxt.setBounds(400,90,150,30);
+        JLabel customerIDLabel =new JLabel();
+        customerIDLabel.setText("Customer ID:");
+        customerIDLabel.setBounds(240,80,150,50);
+        customerIDLabel.setFont(new Font("Arial",Font.BOLD,18));
+        customerIDLabel.setForeground(Color.orange);
+
+        JTextField customerIDTxt =new JTextField();
+        customerIDTxt.setBounds(400,90,150,30);
 
         JButton searchButton=new JButton("Search");
         searchButton.setBounds(570,90,100,30);
@@ -251,11 +285,65 @@ public class ManageUserPage extends JFrame {
         tabPanel.setBounds(240,190,600,350);
         tabPanel.setLayout(null);
 
-            String[][] data={ {"1","A","B","0312345687912","123456789012345","abc123aba45@gmail.com","31/12/2022","Malam Jabba","jhkaifjlkafjakfjalkjflkajflkjalkjfalkj","abc123av245","22/12/2024","Enable"}
+
+        //StringBuilder userDetails = new StringBuilder();
+
+        try{
+            String query = "SELECT * FROM Dummy1";
+            Connection connection = Database.setConnection();
+
+
+            String insertQuery = "INSERT INTO dummy1 (Name) VALUES ( ?)";
+            PreparedStatement pstmt = connection.prepareStatement(insertQuery);
+            pstmt.setString(1, "Hi");
+            pstmt.executeUpdate();
+
+            PreparedStatement statement = connection.prepareStatement(query);
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                /*
+                int customerId = resultSet.getInt("CustomerID");
+
+                String firstName = resultSet.getString("FirstName");
+                String lastName = resultSet.getString("LastName");
+                String phoneNumber = resultSet.getString("PhoneNumber");
+                String email = resultSet.getString("Email");
+
+
+                 */
+                // Append user details to the StringBuilder
+               /* userDetails.append("Customer ID: ").append(customerId).append("\n")
+                        .append("First Name: ").append(firstName).append("\n")
+                        .append("Last Name: ").append(lastName).append("\n")
+                        .append("Phone Number: ").append(phoneNumber).append("\n")
+                        .append("Email: ").append(email).append("\n")
+                        .append("----------------------------\n");
+
+                */
+
+
+
+
+                int SerialNo = resultSet.getInt("ID");
+                String Name = resultSet.getString("Name");
+                System.out.println(SerialNo+" "+Name);
+            }
+        } catch (SQLException e) {
+            
+            throw new RuntimeException(e);
+        }
+
+
+
+
+
+        String[][] data={ {"1","A","B","0312345687912","123456789012345","abc123aba45@gmail.com","31/12/2022","Malam Jabba","jhkaifjlkafjakfjalkjflkajflkjalkjfalkj","abc123av245","22/12/2024","Enable"}
+
 
         };
 
-        String[]column={"User ID","First Name","Last Name","Phone No","CNIC/ Passport","Email","Date of Birth","City","Address","Password","Last Seen","Enab/Dis Account"};
+        String[]column={"Customer ID","First Name","Last Name","Phone No","CNIC/ Passport","Email","Date of Birth","City","Address","Password","Last Seen","Account Active"};
 
         tableModel=new DefaultTableModel(data,column);
         recTable=new JTable(tableModel);
@@ -292,8 +380,8 @@ public class ManageUserPage extends JFrame {
 
         add(label);
         add(menuPanel);
-        add(userIDLabel);
-        add(userIDTxt);
+        add(customerIDLabel);
+        add(customerIDTxt);
         add(searchButton);
         add(removeButton);
         add(editButton);
@@ -317,14 +405,14 @@ public class ManageUserPage extends JFrame {
         addRecLabel.setBounds(100, 30,240,30);
 
 
-        JLabel userIDLabel =new JLabel();
-        userIDLabel.setText("User ID:");
-        userIDLabel.setBounds(50,100,180,30);
-        userIDLabel.setFont(new Font("Arial",Font.BOLD,20));
-        userIDLabel.setForeground(Color.orange);
+        JLabel customerIDLabel =new JLabel();
+        customerIDLabel.setText("Customer ID:");
+        customerIDLabel.setBounds(50,100,180,30);
+        customerIDLabel.setFont(new Font("Arial",Font.BOLD,20));
+        customerIDLabel.setForeground(Color.orange);
 
-        JTextField userIDTxt =new JTextField();
-        userIDTxt.setBounds(180,100,150,30);
+        JTextField customerIDTxt =new JTextField();
+        customerIDTxt.setBounds(180,100,150,30);
 
 
         JButton searchButton=new JButton("Search");
@@ -334,7 +422,7 @@ public class ManageUserPage extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                String IDVal = userIDTxt.getText();
+                String IDVal = customerIDTxt.getText();
                 boolean found=false;
                 for (int i = 0; i < tableModel.getRowCount(); i++)
                 {
@@ -346,10 +434,10 @@ public class ManageUserPage extends JFrame {
                     }
                 }
                 if (!found) {
-                    JOptionPane.showMessageDialog(removeDialog, "Record with User ID " + IDVal +" not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(removeDialog, "Record with Customer ID " + IDVal +" not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
                 }
                 else {
-                    JOptionPane.showMessageDialog(removeDialog, "Record with User ID " + IDVal +  " removed successfully.", "Record Removed", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(removeDialog, "Record with Customer ID " + IDVal +  " removed successfully.", "Record Removed", JOptionPane.INFORMATION_MESSAGE);
                 }
             }
 
@@ -358,8 +446,8 @@ public class ManageUserPage extends JFrame {
         });
 
         removeDialog.add(addRecLabel);
-        removeDialog.add(userIDLabel);
-        removeDialog.add(userIDTxt);
+        removeDialog.add(customerIDLabel);
+        removeDialog.add(customerIDTxt);
         removeDialog.add(searchButton);
 
         removeDialog.setVisible(true);
@@ -391,14 +479,14 @@ public class ManageUserPage extends JFrame {
         editRecLabel.setBounds(150, 30,240,30);
 
 
-        JLabel userIDLabel =new JLabel();
-        userIDLabel.setText("User ID:");
-        userIDLabel.setBounds(10,100,180,30);
-        userIDLabel.setFont(new Font("Arial",Font.BOLD,20));
-        userIDLabel.setForeground(Color.orange);
+        JLabel customerIDLabel =new JLabel();
+        customerIDLabel.setText("Customer ID:");
+        customerIDLabel.setBounds(10,100,180,30);
+        customerIDLabel.setFont(new Font("Arial",Font.BOLD,20));
+        customerIDLabel.setForeground(Color.orange);
 
-        JTextField userIDTxt =new JTextField();
-        userIDTxt.setBounds(200,100,150,30);
+        JTextField customerIDTxt =new JTextField();
+        customerIDTxt.setBounds(200,100,150,30);
 
         JCheckBox phoneNoCheckbox =new JCheckBox("Phone Number");
         phoneNoCheckbox.setBackground( Color.darkGray);
@@ -438,11 +526,11 @@ public class ManageUserPage extends JFrame {
         addressCheckbox.setBounds(150,230,80,30);
         addressCheckbox.setVisible(false);
 
-        JCheckBox enableCheckbox =new JCheckBox("Enable/Disable Account");
-        enableCheckbox.setBackground( Color.darkGray);
-        enableCheckbox.setForeground(Color.orange);
-        enableCheckbox.setBounds(270,230,160,30);
-        enableCheckbox.setVisible(false);
+        JCheckBox accountActiveCheckbox =new JCheckBox("Account Activity");
+        accountActiveCheckbox.setBackground( Color.darkGray);
+        accountActiveCheckbox.setForeground(Color.orange);
+        accountActiveCheckbox.setBounds(270,230,160,30);
+        accountActiveCheckbox.setVisible(false);
 
         JLabel phoneNoLabel=new JLabel("Phone Number:");
         phoneNoLabel.setBounds(10,280,180,30);
@@ -521,11 +609,11 @@ public class ManageUserPage extends JFrame {
         cityTxt.setBounds(200,490,150,30);
         cityTxt.setVisible(false);
 
-        JLabel enabLabel=new JLabel("Enable/Disable Account:");
-        enabLabel.setBounds(10,540,180,30);
-        enabLabel.setFont(new Font("Arial",Font.BOLD,15));
-        enabLabel.setForeground(Color.orange);
-        enabLabel.setVisible(false);
+        JLabel accountActiveLabel =new JLabel("Account Activity:");
+        accountActiveLabel.setBounds(10,540,180,30);
+        accountActiveLabel.setFont(new Font("Arial",Font.BOLD,15));
+        accountActiveLabel.setForeground(Color.orange);
+        accountActiveLabel.setVisible(false);
 
         JRadioButton enRadio=new JRadioButton("Enable");
         JRadioButton disRadio=new JRadioButton("Disable");
@@ -559,7 +647,7 @@ public class ManageUserPage extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                String val= userIDTxt.getText();
+                String val= customerIDTxt.getText();
                 boolean found=false;
                 for (int i = 0; i < tableModel.getRowCount(); i++)
                 {
@@ -571,7 +659,8 @@ public class ManageUserPage extends JFrame {
                         dobCheckbox.setVisible(true);
                         cityCheckbox.setVisible(true);
                         addressCheckbox.setVisible(true);
-                        enableCheckbox.setVisible(true);
+                        accountActiveCheckbox.setVisible(true);
+
 
                         found = true;
                         break;
@@ -591,7 +680,7 @@ public class ManageUserPage extends JFrame {
         editButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String IDVal=userIDTxt.getText();
+                String IDVal= customerIDTxt.getText();
                 boolean found=false;
                 String phoneNo=phoneNoTxt.getText();
                 String cnic=cnicTxt.getText();
@@ -632,7 +721,7 @@ public class ManageUserPage extends JFrame {
                             recTable.setValueAt(address,i,8);
 
                         }
-                        if(enableCheckbox.isSelected())
+                        if(accountActiveCheckbox.isSelected())
                         {
                             if(enRadio.isSelected())
                             {
@@ -752,17 +841,17 @@ public class ManageUserPage extends JFrame {
             }
         });
 
-        enableCheckbox.addActionListener(new ActionListener() {
+        accountActiveCheckbox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(enableCheckbox.isSelected())
+                if(accountActiveCheckbox.isSelected())
                 {
-                    enabLabel.setVisible(true);
+                    accountActiveLabel.setVisible(true);
                     enRadio.setVisible(true);
                     disRadio.setVisible(true);
                 }
                 else{
-                    enabLabel.setVisible(false);
+                    accountActiveLabel.setVisible(false);
                     enRadio.setVisible(false);
                     disRadio.setVisible(false);
                 }
@@ -772,8 +861,8 @@ public class ManageUserPage extends JFrame {
 
 
         inputPanel.add(editRecLabel);
-        inputPanel.add(userIDLabel);
-        inputPanel.add(userIDTxt);
+        inputPanel.add(customerIDLabel);
+        inputPanel.add(customerIDTxt);
         inputPanel.add(searchButton);
         inputPanel.add(phoneNoCheckbox);
         inputPanel.add(cnicCheckbox);
@@ -781,7 +870,7 @@ public class ManageUserPage extends JFrame {
         inputPanel.add(dobCheckbox);
         inputPanel.add(cityCheckbox);
         inputPanel.add(addressCheckbox);
-        inputPanel.add(enableCheckbox);
+        inputPanel.add(accountActiveCheckbox);
         inputPanel.add(phoneNoLabel);
         inputPanel.add(phoneNoTxt);
         inputPanel.add(cnicLabel);
@@ -793,7 +882,7 @@ public class ManageUserPage extends JFrame {
         inputPanel.add(cityTxt);
         inputPanel.add(addressLabel);
         inputPanel.add(addressTxt);
-        inputPanel.add(enabLabel);
+        inputPanel.add(accountActiveLabel);
         inputPanel.add(enRadio);
         inputPanel.add(disRadio);
         inputPanel.add(editButton);

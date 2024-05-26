@@ -7,6 +7,7 @@ import Project.Admin.UserMangement.ManageDriverPage;
 import Project.Admin.UserMangement.ManageManagerPage;
 import Project.Admin.UserMangement.ManageUserPage;
 import Project.Admin.ViewFeedbackPage;
+import Project.Database;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -17,11 +18,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class ManageRoutePage extends JFrame {
 
     DefaultTableModel tableModel;
     JTable recTable;
+    Connection connection= Database.setConnection();
 
     public ManageRoutePage() {
         JLabel label=new JLabel();
@@ -52,6 +58,8 @@ public class ManageRoutePage extends JFrame {
         //Children of Bus Management
         DefaultMutableTreeNode manage_bus=new DefaultMutableTreeNode("Manage Bus");
         DefaultMutableTreeNode manage_route=new DefaultMutableTreeNode("Manage Route");
+        DefaultMutableTreeNode manage_stop_route=new DefaultMutableTreeNode("Manage Stop Route");
+        DefaultMutableTreeNode manage_bus_maintenance=new DefaultMutableTreeNode("Manage Bus Maintenance");
 
         //Children of Booking Management
         DefaultMutableTreeNode add_booking=new DefaultMutableTreeNode("Add Booking");
@@ -59,6 +67,9 @@ public class ManageRoutePage extends JFrame {
         DefaultMutableTreeNode manage_pricing=new DefaultMutableTreeNode("Manage Pricing");
         DefaultMutableTreeNode view_seat=new DefaultMutableTreeNode("View Seat Occupancy");
         DefaultMutableTreeNode refund_manage=new DefaultMutableTreeNode("Refund Management");
+        DefaultMutableTreeNode manage_promocode=new DefaultMutableTreeNode("Manage PromoCode");
+        DefaultMutableTreeNode manage_tax=new DefaultMutableTreeNode("Manage Taxes");
+
 
         //Child of FeedBack Management
         DefaultMutableTreeNode view_feedback=new DefaultMutableTreeNode("View Feedback");
@@ -76,12 +87,16 @@ public class ManageRoutePage extends JFrame {
 
         busManagement.add(manage_bus);
         busManagement.add(manage_route);
+        busManagement.add(manage_stop_route);
+        busManagement.add(manage_bus_maintenance);
 
         bookingManagement.add(add_booking);
         bookingManagement.add(view_booking);
         bookingManagement.add(manage_pricing);
         bookingManagement.add(view_seat);
         bookingManagement.add(refund_manage);
+        bookingManagement.add(manage_promocode);
+        bookingManagement.add(manage_tax);
 
         feedbackManagement.add(view_feedback);
 
@@ -162,6 +177,25 @@ public class ManageRoutePage extends JFrame {
                             RefundManagementPage rmp=new RefundManagementPage();
                             dispose();
                             break;
+                        case "Manage PromoCode":
+                            ManagePromoCodePage mpcp=new ManagePromoCodePage();
+                            dispose();
+                            break;
+
+                        case "Manage Taxes":
+                            ManageTaxPage mtp=new ManageTaxPage();
+                            dispose();
+                            break;
+
+                        case "Manage Stop Route":
+                            ManageStopRoutePage mspp=new ManageStopRoutePage();
+                            dispose();
+                            break;
+
+                        case "Manage Bus Maintenance":
+                            ManageBusMaintenancePage mbmp=new ManageBusMaintenancePage();
+                            dispose();
+                            break;
 
                         case "View Feedback":
                             ViewFeedbackPage vfp=new ViewFeedbackPage();
@@ -204,6 +238,7 @@ public class ManageRoutePage extends JFrame {
         dashboardTree.setCellRenderer(renderer);
 
 
+
         JLabel routeIDLabel =new JLabel();
         routeIDLabel.setText("Route ID:");
         routeIDLabel.setBounds(240,80,150,50);
@@ -219,7 +254,45 @@ public class ManageRoutePage extends JFrame {
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                String rID = routeIDTxt.getText();
+                boolean found = false;
 
+                String query = "Select * from RouteDummy where RouteID=?";
+                try {
+
+                    PreparedStatement pst = connection.prepareStatement(query);
+                    pst.setInt(1, Integer.parseInt(rID));
+                    ResultSet rs = pst.executeQuery();
+                    while (rs.next()) {
+
+                        tableModel.setRowCount(0);
+                        int routeID = rs.getInt("RouteID");
+                        String departure = rs.getString("Departure");
+                        String arrival = rs.getString("Arrival");
+                        String stop1 = rs.getString("Stop1");
+                        String stop2 = rs.getString("Stop2");
+                        String stop3 = rs.getString("Stop3");
+                        String stop4 = rs.getString("Stop4");
+                        String stop5 = rs.getString("Stop5");
+                        int stopRouteID = rs.getInt("StopRouteID");
+                        int travelKM = rs.getInt("TravelKM");
+                        String departureTime = rs.getString("DepartureTime");
+                        String arrivalTime = rs.getString("ArrivalTime");
+                        String[] data = {Integer.toString(routeID), departure, arrival, stop1, stop2, stop3, stop4, stop5,
+                                Integer.toString(stopRouteID), Integer.toString(travelKM), departureTime, arrivalTime};
+
+                        tableModel.addRow(data);
+                        found = true;
+
+                    }
+
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+
+                if (!found) {
+                    JOptionPane.showMessageDialog(null, "Record with Route ID " + rID + " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                }
             }
         });
 
@@ -262,12 +335,52 @@ public class ManageRoutePage extends JFrame {
         tabPanel.setBounds(240,190,600,350);
         tabPanel.setLayout(null);
 
-        String[][] data={{"1","Karachi","Lahore","Hyderabad","Multan","Kashmir","Hunza","Hari Por","500","5 Hours"}};
-        String[]column={"Route ID","Departure","Arrival","Stop 1","Stop 2","Stop 3","Stop 4","Stop 5","Travel KM","Time Taken"};
+        String[]column={"Route ID","Departure","Arrival","Stop 1","Stop 2","Stop 3","Stop 4","Stop 5","StopRouteID","Travel KM","Departure Time","Arrival Time"};
 
-        tableModel=new DefaultTableModel(data,column);
+        tableModel=new DefaultTableModel(column,0);
         recTable=new JTable(tableModel);
         recTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // This ensures horizontal scrolling
+        recTable.getColumnModel().getColumn(0).setPreferredWidth(80);
+        recTable.getColumnModel().getColumn(1).setPreferredWidth(110);
+        recTable.getColumnModel().getColumn(2).setPreferredWidth(110);
+        recTable.getColumnModel().getColumn(3).setPreferredWidth(110);
+        recTable.getColumnModel().getColumn(4).setPreferredWidth(110);
+        recTable.getColumnModel().getColumn(5).setPreferredWidth(110);
+        recTable.getColumnModel().getColumn(6).setPreferredWidth(110);
+        recTable.getColumnModel().getColumn(7).setPreferredWidth(110);
+        recTable.getColumnModel().getColumn(8).setPreferredWidth(90);
+        recTable.getColumnModel().getColumn(9).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(10).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(11).setPreferredWidth(100);
+
+        String query="Select * from RouteDummy";
+        try {
+            PreparedStatement psmnt=connection.prepareStatement(query);
+            ResultSet rs=psmnt.executeQuery();
+            while(rs.next()){
+
+                int routeID=rs.getInt("RouteID");
+                String departure=rs.getString("Departure");
+                String arrival=rs.getString("Arrival");
+                String stop1=rs.getString("Stop1");
+                String stop2=rs.getString("Stop2");
+                String stop3=rs.getString("Stop3");
+                String stop4=rs.getString("Stop4");
+                String stop5=rs.getString("Stop5");
+                int stopRouteID=rs.getInt("StopRouteID");
+                int travelKM=rs.getInt("TravelKM");
+                String departureTime=rs.getString("DepartureTime");
+                String arrivalTime=rs.getString("ArrivalTime");
+                String[] data={Integer.toString(routeID),departure,arrival,stop1,stop2,stop3,stop4,stop5,
+                        Integer.toString(stopRouteID),Integer.toString(travelKM),departureTime,arrivalTime};
+
+                tableModel.addRow(data);
+
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
 
         JScrollPane scrollPane=new JScrollPane(recTable);
         scrollPane.setBounds(1,1,600,350);
@@ -313,7 +426,7 @@ public class ManageRoutePage extends JFrame {
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(null);
         inputPanel.setBackground(Color.darkGray);
-        inputPanel.setPreferredSize(new Dimension(480, 450)); // Adjust height as needed
+        inputPanel.setPreferredSize(new Dimension(480, 470)); // Adjust height as needed
 
 
         JLabel addRecLabel=new JLabel();
@@ -322,51 +435,61 @@ public class ManageRoutePage extends JFrame {
         addRecLabel.setForeground(Color.orange);
         addRecLabel.setBounds(150, 30,240,30);
 
-        JLabel routeIDLabel =new JLabel();
-        routeIDLabel.setText("Route ID:");
-        routeIDLabel.setBounds(10,100,150,30);
-        routeIDLabel.setFont(new Font("Arial",Font.BOLD,20));
-        routeIDLabel.setForeground(Color.orange);
-
-        JTextField routeIDTxt =new JTextField();
-        routeIDTxt.setBounds(200,100,150,30);
-
-
         JLabel departureLabel =new JLabel();
         departureLabel.setText("Departure:");
-        departureLabel.setBounds(10,150,180,30);
+        departureLabel.setBounds(10,100,180,30);
         departureLabel.setFont(new Font("Arial",Font.BOLD,20));
         departureLabel.setForeground(Color.orange);
 
         JTextField departureTxt =new JTextField();
-        departureTxt.setBounds(200,150,150,30);
+        departureTxt.setBounds(200,100,150,30);
 
         JLabel arrivalLabel =new JLabel();
         arrivalLabel.setText("Arrival:");
-        arrivalLabel.setBounds(10,200,180,30);
+        arrivalLabel.setBounds(10,150,180,30);
         arrivalLabel.setFont(new Font("Arial",Font.BOLD,20));
         arrivalLabel.setForeground(Color.orange);
 
         JTextField arrivalTxt =new JTextField();
-        arrivalTxt.setBounds(200,200,150,30);
+        arrivalTxt.setBounds(200,150,150,30);
 
         JLabel travelKMLabel =new JLabel();
         travelKMLabel.setText("Travel KM:");
-        travelKMLabel.setBounds(10,250,180,30);
+        travelKMLabel.setBounds(10,200,180,30);
         travelKMLabel.setFont(new Font("Arial",Font.BOLD,20));
         travelKMLabel.setForeground(Color.orange);
 
         JTextField travelKMTxt =new JTextField();
-        travelKMTxt.setBounds(200,250,150,30);
+        travelKMTxt.setBounds(200,200,150,30);
 
-        JLabel timeTakenLabel =new JLabel();
-        timeTakenLabel.setText("Time Taken:");
-        timeTakenLabel.setBounds(10,300,180,30);
-        timeTakenLabel.setFont(new Font("Arial",Font.BOLD,20));
-        timeTakenLabel.setForeground(Color.orange);
+        JLabel departureTimeLabel =new JLabel();
+        departureTimeLabel.setText("Departure Time:");
+        departureTimeLabel.setBounds(10,250,180,30);
+        departureTimeLabel.setFont(new Font("Arial",Font.BOLD,20));
+        departureTimeLabel.setForeground(Color.orange);
 
-        JTextField timeTakenTxt =new JTextField();
-        timeTakenTxt.setBounds(200,300,150,30);
+        JTextField departureTimeTxt =new JTextField();
+        departureTimeTxt.setBounds(200,250,150,30);
+
+        JLabel arrivalTimeLabel =new JLabel();
+        arrivalTimeLabel.setText("Arrival Time:");
+        arrivalTimeLabel.setBounds(10,300,180,30);
+        arrivalTimeLabel.setFont(new Font("Arial",Font.BOLD,20));
+        arrivalTimeLabel.setForeground(Color.orange);
+
+        JTextField arrivalTimeTxt =new JTextField();
+        arrivalTimeTxt.setBounds(200,300,150,30);
+
+        JLabel stopRouteIDLabel =new JLabel();
+        stopRouteIDLabel.setText("Stop-Route ID :");
+        stopRouteIDLabel.setBounds(10,400,180,30);
+        stopRouteIDLabel.setFont(new Font("Arial",Font.BOLD,20));
+        stopRouteIDLabel.setForeground(Color.orange);
+        stopRouteIDLabel.setVisible(false);
+
+        JTextField stopRouteIDTxt =new JTextField();
+        stopRouteIDTxt.setBounds(200,400,150,30);
+        stopRouteIDTxt.setVisible(false);
 
         JLabel selectLabel=new JLabel();
         selectLabel.setText("Select how many stops:");
@@ -437,6 +560,8 @@ public class ManageRoutePage extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if(r1.isSelected())
                 {
+                    stopRouteIDLabel.setVisible(true);
+                    stopRouteIDTxt.setVisible(true);
                     stop1Label.setVisible(true);
                     stop1Txt.setVisible(true);
                     stop2Label.setVisible(false);
@@ -447,12 +572,14 @@ public class ManageRoutePage extends JFrame {
                     stop4Txt.setVisible(false);
                     stop5Label.setVisible(false);
                     stop5Txt.setVisible(false);
-                    inputPanel.setPreferredSize(new Dimension(480, 500)); // Adjust height as needed
-                    addButton.setBounds(150, 450, 100, 40);
+                    inputPanel.setPreferredSize(new Dimension(480, 550)); // Adjust height as needed
+                    addButton.setBounds(150, 500, 100, 40);
 
                 }
                 else if(r2.isSelected())
                 {
+                    stopRouteIDLabel.setVisible(true);
+                    stopRouteIDTxt.setVisible(true);
                     stop1Label.setVisible(true);
                     stop1Txt.setVisible(true);
                     stop2Label.setVisible(true);
@@ -463,13 +590,15 @@ public class ManageRoutePage extends JFrame {
                     stop4Txt.setVisible(false);
                     stop5Label.setVisible(false);
                     stop5Txt.setVisible(false);
-                    inputPanel.setPreferredSize(new Dimension(480, 550)); // Adjust height as needed
-                    addButton.setBounds(150, 500, 100, 40);
+                    inputPanel.setPreferredSize(new Dimension(480, 600)); // Adjust height as needed
+                    addButton.setBounds(150, 550, 100, 40);
 
 
                 }
                 else if(r3.isSelected())
                 {
+                    stopRouteIDLabel.setVisible(true);
+                    stopRouteIDTxt.setVisible(true);
                     stop1Label.setVisible(true);
                     stop1Txt.setVisible(true);
                     stop2Label.setVisible(true);
@@ -480,13 +609,15 @@ public class ManageRoutePage extends JFrame {
                     stop4Txt.setVisible(false);
                     stop5Label.setVisible(false);
                     stop5Txt.setVisible(false);
-                    inputPanel.setPreferredSize(new Dimension(480, 600)); // Adjust height as needed
-                    addButton.setBounds(150, 550, 100, 40);
+                    inputPanel.setPreferredSize(new Dimension(480, 650)); // Adjust height as needed
+                    addButton.setBounds(150, 600, 100, 40);
 
 
                 }
                 else if(r4.isSelected())
                 {
+                    stopRouteIDLabel.setVisible(true);
+                    stopRouteIDTxt.setVisible(true);
                     stop1Label.setVisible(true);
                     stop1Txt.setVisible(true);
                     stop2Label.setVisible(true);
@@ -497,13 +628,15 @@ public class ManageRoutePage extends JFrame {
                     stop4Txt.setVisible(true);
                     stop5Label.setVisible(false);
                     stop5Txt.setVisible(false);
-                    inputPanel.setPreferredSize(new Dimension(480, 650)); // Adjust height as needed
-                    addButton.setBounds(150, 600, 100, 40);
+                    inputPanel.setPreferredSize(new Dimension(480, 700)); // Adjust height as needed
+                    addButton.setBounds(150, 650, 100, 40);
 
 
                 }
                 else if(r5.isSelected())
                 {
+                    stopRouteIDLabel.setVisible(true);
+                    stopRouteIDTxt.setVisible(true);
                     stop1Label.setVisible(true);
                     stop1Txt.setVisible(true);
                     stop2Label.setVisible(true);
@@ -514,14 +647,16 @@ public class ManageRoutePage extends JFrame {
                     stop4Txt.setVisible(true);
                     stop5Label.setVisible(true);
                     stop5Txt.setVisible(true);
-                    inputPanel.setPreferredSize(new Dimension(480, 700)); // Adjust height as needed
-                    addButton.setBounds(150, 650, 100, 40);
+                    inputPanel.setPreferredSize(new Dimension(480, 750)); // Adjust height as needed
+                    addButton.setBounds(150, 700, 100, 40);
 
 
                 }
-
+/*
                 else
                 {
+                    stopRouteIDLabel.setVisible(false);
+                    stopRouteIDTxt.setVisible(false);
                     stop1Label.setVisible(false);
                     stop1Txt.setVisible(false);
                     stop2Label.setVisible(false);
@@ -532,9 +667,11 @@ public class ManageRoutePage extends JFrame {
                     stop4Txt.setVisible(false);
                     stop5Label.setVisible(false);
                     stop5Txt.setVisible(false);
-                    addButton.setBounds(150, 400, 100, 40);
+                    addButton.setBounds(150, 500, 100, 40);
 
                 }
+
+ */
             }
 
 
@@ -546,44 +683,121 @@ public class ManageRoutePage extends JFrame {
         r4.addActionListener(radio);
         r5.addActionListener(radio);
 
-        stop1Label.setBounds(10,400,180,30);
+        stop1Label.setBounds(10,450,180,30);
         stop1Label.setFont(new Font("Arial",Font.BOLD,20));
         stop1Label.setForeground(Color.orange);
 
-        stop1Txt.setBounds(200,400,150,30);
+        stop1Txt.setBounds(200,450,150,30);
 
-        stop2Label.setBounds(10,450,180,30);
+        stop2Label.setBounds(10,500,180,30);
         stop2Label.setFont(new Font("Arial",Font.BOLD,20));
         stop2Label.setForeground(Color.orange);
 
-        stop2Txt.setBounds(200,450,150,30);
+        stop2Txt.setBounds(200,500,150,30);
 
-        stop3Label.setBounds(10,500,180,30);
+        stop3Label.setBounds(10,550,180,30);
         stop3Label.setFont(new Font("Arial",Font.BOLD,20));
         stop3Label.setForeground(Color.orange);
 
-        stop3Txt.setBounds(200,500,150,30);
+        stop3Txt.setBounds(200,550,150,30);
 
-        stop4Label.setBounds(10,550,180,30);
+        stop4Label.setBounds(10,600,180,30);
         stop4Label.setFont(new Font("Arial",Font.BOLD,20));
         stop4Label.setForeground(Color.orange);
 
-        stop4Txt.setBounds(200,550,150,30);
+        stop4Txt.setBounds(200,600,150,30);
 
-        stop5Label.setBounds(10,600,180,30);
+        stop5Label.setBounds(10,650,180,30);
         stop5Label.setFont(new Font("Arial",Font.BOLD,20));
         stop5Label.setForeground(Color.orange);
 
-        stop5Txt.setBounds(200,600,150,30);
+        stop5Txt.setBounds(200,650,150,30);
 
         addButton.setBackground(Color.cyan);
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                String[] row={routeIDTxt.getText(), departureTxt.getText(), arrivalTxt.getText(),stop1Txt.getText(),
-                        stop2Txt.getText(),stop3Txt.getText(),stop4Txt.getText(),stop5Txt.getText(),travelKMTxt.getText(),
-                        timeTakenTxt.getText()+" Hours"};
+                int RouteID,maxVal=0;
+
+                String insertQuery="insert into routeDummy(StopRouteId,Departure,Arrival,stop1,stop2,stop3,stop4,stop5,TravelKM,DepartureTime,ArrivalTime) values(?,?,?,?,?,?,?,?,?,?,?)";
+                try {
+                    PreparedStatement pst=connection.prepareStatement(insertQuery);
+                    pst.setInt(1,Integer.parseInt(stopRouteIDTxt.getText()));
+                    pst.setString(2,departureTxt.getText());
+                    pst.setString(3,arrivalTxt.getText());
+                    if(stop1Txt.getText().equals(""))
+                    {
+                        pst.setString(4,null);
+
+                    }
+                    else{
+                        pst.setString(4,stop1Txt.getText());
+
+                    }
+                    if(stop2Txt.getText().equals(""))
+                    {
+                        pst.setString(5,null);
+
+                    }
+                    else{
+                        pst.setString(5,stop2Txt.getText());
+
+                    }
+                    if(stop3Txt.getText().equals(""))
+                    {
+                        pst.setString(6,null);
+
+                    }
+                    else{
+                        pst.setString(6,stop3Txt.getText());
+
+                    }
+                    if(stop4Txt.getText().equals(""))
+                    {
+                        pst.setString(7,null);
+
+                    }
+                    else{
+                        pst.setString(7,stop4Txt.getText());
+
+                    }
+                    if(stop5Txt.getText().equals(""))
+                    {
+                        pst.setString(8,null);
+
+                    }
+                    else{
+                        pst.setString(8,stop5Txt.getText());
+
+                    }
+                    pst.setInt(9,Integer.parseInt(travelKMTxt.getText()));
+                    pst.setString(10,departureTimeTxt.getText());
+                    pst.setString(11,arrivalTimeTxt.getText());
+                    pst.executeUpdate();
+
+
+                    String query="Select RouteID from RouteDummy ";
+                    PreparedStatement psmt=connection.prepareStatement(query);
+                    ResultSet rs=psmt.executeQuery();
+                    while(rs.next())
+                    {
+                        RouteID=rs.getInt(1);
+                        if(RouteID>maxVal){
+                            maxVal=RouteID;
+                        }
+
+                    }
+
+
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+                String[] row={
+                        Integer.toString(maxVal), departureTxt.getText(), arrivalTxt.getText(),stop1Txt.getText(),
+                        stop2Txt.getText(),stop3Txt.getText(),stop4Txt.getText(),stop5Txt.getText(),stopRouteIDTxt.getText(),travelKMTxt.getText(),
+                        departureTimeTxt.getText(), arrivalTimeTxt.getText()
+                };
                 tableModel.addRow(row);
                 addDialog.dispose();
             }
@@ -592,18 +806,20 @@ public class ManageRoutePage extends JFrame {
 
 
         inputPanel.add(addRecLabel);
-        inputPanel.add(routeIDLabel);
-        inputPanel.add(routeIDTxt);
         inputPanel.add(departureLabel);
         inputPanel.add(departureTxt);
         inputPanel.add(arrivalLabel);
         inputPanel.add(arrivalTxt);
         inputPanel.add(selectLabel);
         inputPanel.add(addButton);
-        inputPanel.add(timeTakenLabel);
-        inputPanel.add(timeTakenTxt);
+        inputPanel.add(stopRouteIDLabel);
+        inputPanel.add(stopRouteIDTxt);
         inputPanel.add(travelKMLabel);
         inputPanel.add(travelKMTxt);
+        inputPanel.add(departureTimeLabel);
+        inputPanel.add(departureTimeTxt);
+        inputPanel.add(arrivalTimeLabel);
+        inputPanel.add(arrivalTimeTxt);
         inputPanel.add(r1);
         inputPanel.add(r2);
         inputPanel.add(r3);
@@ -665,7 +881,19 @@ public class ManageRoutePage extends JFrame {
                 for (int i = 0; i < tableModel.getRowCount(); i++)
                 {
                     if (tableModel.getValueAt(i, 0).equals(IDVal))
-                    { // Checking Reg number at index 4 & Bus ID at index 0
+                    {
+                        String delQuery="DELETE FROM RouteDummy WHERE RouteID=?";
+                        try
+                        {
+                            PreparedStatement preparedStatement=connection.prepareStatement(delQuery);
+                            preparedStatement.setInt(1,Integer.parseInt(IDVal));
+                            preparedStatement.executeUpdate();
+
+                        }
+                        catch (SQLException ex)
+                        {
+                            throw new RuntimeException(ex);
+                        }
                         tableModel.removeRow(i);
                         found = true;
                         break;
@@ -707,18 +935,18 @@ public class ManageRoutePage extends JFrame {
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(null);
         inputPanel.setBackground(Color.darkGray);
-        inputPanel.setPreferredSize(new Dimension(480, 580));
+        inputPanel.setPreferredSize(new Dimension(480, 730));
 
         JLabel editRecLabel =new JLabel();
         editRecLabel.setText("Edit Record");
         editRecLabel.setFont(new Font("Arial",Font.BOLD,22));
         editRecLabel.setForeground(Color.orange);
-        editRecLabel.setBounds(100, 30,240,30);
+        editRecLabel.setBounds(150, 30,240,30);
 
 
         JLabel routeIDLabel =new JLabel();
         routeIDLabel.setText("Route ID:");
-        routeIDLabel.setBounds(10,100,180,30);
+        routeIDLabel.setBounds(70,100,180,30);
         routeIDLabel.setFont(new Font("Arial",Font.BOLD,20));
         routeIDLabel.setForeground(Color.orange);
 
@@ -738,11 +966,6 @@ public class ManageRoutePage extends JFrame {
         arrivalCheckbox.setBounds(140,200,70,30);
         arrivalCheckbox.setVisible(false);
 
-        JCheckBox selectStopCheckbox =new JCheckBox("Stop Selection");
-        selectStopCheckbox.setBackground( Color.darkGray);
-        selectStopCheckbox.setForeground(Color.orange);
-        selectStopCheckbox.setBounds(40,235,110,30);
-        selectStopCheckbox.setVisible(false);
 
 
         JCheckBox travelKMCheckbox =new JCheckBox("Travel KM");
@@ -751,11 +974,29 @@ public class ManageRoutePage extends JFrame {
         travelKMCheckbox.setBounds(220,200,100,30);
         travelKMCheckbox.setVisible(false);
 
-        JCheckBox timeTakenCheckbox =new JCheckBox("Time Taken");
-        timeTakenCheckbox.setBackground( Color.darkGray);
-        timeTakenCheckbox.setForeground(Color.orange);
-        timeTakenCheckbox.setBounds(320,200,120,30);
-        timeTakenCheckbox.setVisible(false);
+        JCheckBox departureTimeCheckbox =new JCheckBox("Departure Time");
+        departureTimeCheckbox.setBackground( Color.darkGray);
+        departureTimeCheckbox.setForeground(Color.orange);
+        departureTimeCheckbox.setBounds(320,200,120,30);
+        departureTimeCheckbox.setVisible(false);
+
+        JCheckBox arrivalTimeCheckbox =new JCheckBox("Arrival Time");
+        arrivalTimeCheckbox.setBackground( Color.darkGray);
+        arrivalTimeCheckbox.setForeground(Color.orange);
+        arrivalTimeCheckbox.setBounds(40,235,100,30);
+        arrivalTimeCheckbox.setVisible(false);
+
+        JCheckBox stopRouteIDCheckbox =new JCheckBox("Stop Route ID");
+        stopRouteIDCheckbox.setBackground( Color.darkGray);
+        stopRouteIDCheckbox.setForeground(Color.orange);
+        stopRouteIDCheckbox.setBounds(140,235,110,30);
+        stopRouteIDCheckbox.setVisible(false);
+
+        JCheckBox selectStopCheckbox =new JCheckBox("Stop Selection");
+        selectStopCheckbox.setBackground( Color.darkGray);
+        selectStopCheckbox.setForeground(Color.orange);
+        selectStopCheckbox.setBounds(250,235,110,30);
+        selectStopCheckbox.setVisible(false);
 
 
         JLabel departureLabel =new JLabel();
@@ -792,20 +1033,42 @@ public class ManageRoutePage extends JFrame {
         travelKMTxt.setBounds(200,380,150,30);
         travelKMTxt.setVisible(false);
 
-        JLabel timeTakenLabel =new JLabel();
-        timeTakenLabel.setText("Time Taken:");
-        timeTakenLabel.setBounds(10,430,180,30);
-        timeTakenLabel.setFont(new Font("Arial",Font.BOLD,20));
-        timeTakenLabel.setForeground(Color.orange);
-        timeTakenLabel.setVisible(false);
+        JLabel departureTimeLLabel =new JLabel();
+        departureTimeLLabel.setText("Departure Time:");
+        departureTimeLLabel.setBounds(10,430,180,30);
+        departureTimeLLabel.setFont(new Font("Arial",Font.BOLD,20));
+        departureTimeLLabel.setForeground(Color.orange);
+        departureTimeLLabel.setVisible(false);
 
-        JTextField timeTakenTxt =new JTextField();
-        timeTakenTxt.setBounds(200,430,150,30);
-        timeTakenTxt.setVisible(false);
+        JTextField departureTimeTxt =new JTextField();
+        departureTimeTxt.setBounds(200,430,150,30);
+        departureTimeTxt.setVisible(false);
+
+        JLabel arrivalTimeLLabel =new JLabel();
+        arrivalTimeLLabel.setText("Arrival Time:");
+        arrivalTimeLLabel.setBounds(10,480,180,30);
+        arrivalTimeLLabel.setFont(new Font("Arial",Font.BOLD,20));
+        arrivalTimeLLabel.setForeground(Color.orange);
+        arrivalTimeLLabel.setVisible(false);
+
+        JTextField arrivalTimeTxt =new JTextField();
+        arrivalTimeTxt.setBounds(200,480,150,30);
+        arrivalTimeTxt.setVisible(false);
+
+        JLabel stopRouteIDLabel =new JLabel();
+        stopRouteIDLabel.setText("Stop Route ID:");
+        stopRouteIDLabel.setBounds(10,530,180,30);
+        stopRouteIDLabel.setFont(new Font("Arial",Font.BOLD,20));
+        stopRouteIDLabel.setForeground(Color.orange);
+        stopRouteIDLabel.setVisible(false);
+
+        JTextField stopRouteIDTxt =new JTextField();
+        stopRouteIDTxt.setBounds(200,530,150,30);
+        stopRouteIDTxt.setVisible(false);
 
         JLabel selectStopLabel =new JLabel();
         selectStopLabel.setText("Select Stops:");
-        selectStopLabel.setBounds(10,480,180,30);
+        selectStopLabel.setBounds(10,580,180,30);
         selectStopLabel.setFont(new Font("Arial",Font.BOLD,20));
         selectStopLabel.setForeground(Color.orange);
         selectStopLabel.setVisible(false);
@@ -816,11 +1079,11 @@ public class ManageRoutePage extends JFrame {
         JRadioButton r4=new JRadioButton("4");
         JRadioButton r5=new JRadioButton("5");
 
-        r1.setBounds(200,480,40,30);
-        r2.setBounds(250,480,40,30);
-        r3.setBounds(300,480,40,30);
-        r4.setBounds(350,480,40,30);
-        r5.setBounds(400,480,40,30);
+        r1.setBounds(200,580,40,30);
+        r2.setBounds(250,580,40,30);
+        r3.setBounds(300,580,40,30);
+        r4.setBounds(350,580,40,30);
+        r5.setBounds(400,580,40,30);
 
         r1.setVisible(false);
         r2.setVisible(false);
@@ -872,7 +1135,7 @@ public class ManageRoutePage extends JFrame {
         stop5Txt.setVisible(false);
 
         JButton editButton=new JButton("Edit");
-        editButton.setBounds(130,530,100,30);
+        editButton.setBounds(130,630,100,30);
         editButton.setBackground(Color.cyan);
         editButton.setVisible(false);
 
@@ -882,7 +1145,7 @@ public class ManageRoutePage extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if(r1.isSelected())
                 {
-                    editButton.setBounds(130,580,100,30);
+                    editButton.setBounds(130,680,100,30);
                     stop1Label.setVisible(true);
                     stop1Txt.setVisible(true);
                     stop2Label.setVisible(false);
@@ -893,13 +1156,13 @@ public class ManageRoutePage extends JFrame {
                     stop4Txt.setVisible(false);
                     stop5Label.setVisible(false);
                     stop5Txt.setVisible(false);
-                    inputPanel.setPreferredSize(new Dimension(480, 630)); // Adjust height as needed
+                    inputPanel.setPreferredSize(new Dimension(480, 730)); // Adjust height as needed
 
 
                 }
                 else if(r2.isSelected())
                 {
-                    editButton.setBounds(130,630,100,30);
+                    editButton.setBounds(130,730,100,30);
                     stop1Label.setVisible(true);
                     stop1Txt.setVisible(true);
                     stop2Label.setVisible(true);
@@ -910,13 +1173,13 @@ public class ManageRoutePage extends JFrame {
                     stop4Txt.setVisible(false);
                     stop5Label.setVisible(false);
                     stop5Txt.setVisible(false);
-                    inputPanel.setPreferredSize(new Dimension(480, 680)); // Adjust height as needed
+                    inputPanel.setPreferredSize(new Dimension(480, 780)); // Adjust height as needed
 
 
                 }
                 else if(r3.isSelected())
                 {
-                    editButton.setBounds(130,680,100,30);
+                    editButton.setBounds(130,780,100,30);
                     stop1Label.setVisible(true);
                     stop1Txt.setVisible(true);
                     stop2Label.setVisible(true);
@@ -927,13 +1190,13 @@ public class ManageRoutePage extends JFrame {
                     stop4Txt.setVisible(false);
                     stop5Label.setVisible(false);
                     stop5Txt.setVisible(false);
-                    inputPanel.setPreferredSize(new Dimension(480, 730)); // Adjust height as needed
+                    inputPanel.setPreferredSize(new Dimension(480, 830)); // Adjust height as needed
 
 
                 }
                 else if(r4.isSelected())
                 {
-                    editButton.setBounds(130,730,100,30);
+                    editButton.setBounds(130,830,100,30);
                     stop1Label.setVisible(true);
                     stop1Txt.setVisible(true);
                     stop2Label.setVisible(true);
@@ -944,13 +1207,13 @@ public class ManageRoutePage extends JFrame {
                     stop4Txt.setVisible(true);
                     stop5Label.setVisible(false);
                     stop5Txt.setVisible(false);
-                    inputPanel.setPreferredSize(new Dimension(480, 780)); // Adjust height as needed
+                    inputPanel.setPreferredSize(new Dimension(480, 880)); // Adjust height as needed
 
 
                 }
                 else if(r5.isSelected())
                 {
-                    editButton.setBounds(130,780,100,30);
+                    editButton.setBounds(130,880,100,30);
                     stop1Label.setVisible(true);
                     stop1Txt.setVisible(true);
                     stop2Label.setVisible(true);
@@ -961,11 +1224,12 @@ public class ManageRoutePage extends JFrame {
                     stop4Txt.setVisible(true);
                     stop5Label.setVisible(true);
                     stop5Txt.setVisible(true);
-                    inputPanel.setPreferredSize(new Dimension(480, 830)); // Adjust height as needed
+                    inputPanel.setPreferredSize(new Dimension(480, 930)); // Adjust height as needed
 
 
                 }
 
+                /*
                 else
                 {
                     stop1Label.setVisible(false);
@@ -980,7 +1244,7 @@ public class ManageRoutePage extends JFrame {
                     stop5Txt.setVisible(false);
                     //addButton.setBounds(150, 400, 100, 40);
 
-                }
+                }*/
             }
 
 
@@ -992,35 +1256,35 @@ public class ManageRoutePage extends JFrame {
         r4.addActionListener(radio);
         r5.addActionListener(radio);
 
-        stop1Label.setBounds(10,530,180,30);
+        stop1Label.setBounds(10,630,180,30);
         stop1Label.setFont(new Font("Arial",Font.BOLD,20));
         stop1Label.setForeground(Color.orange);
 
-        stop1Txt.setBounds(200,530,150,30);
+        stop1Txt.setBounds(200,630,150,30);
 
-        stop2Label.setBounds(10,580,180,30);
+        stop2Label.setBounds(10,680,180,30);
         stop2Label.setFont(new Font("Arial",Font.BOLD,20));
         stop2Label.setForeground(Color.orange);
 
-        stop2Txt.setBounds(200,580,150,30);
+        stop2Txt.setBounds(200,680,150,30);
 
-        stop3Label.setBounds(10,630,180,30);
+        stop3Label.setBounds(10,730,180,30);
         stop3Label.setFont(new Font("Arial",Font.BOLD,20));
         stop3Label.setForeground(Color.orange);
 
-        stop3Txt.setBounds(200,630,150,30);
+        stop3Txt.setBounds(200,730,150,30);
 
-        stop4Label.setBounds(10,680,180,30);
+        stop4Label.setBounds(10,780,180,30);
         stop4Label.setFont(new Font("Arial",Font.BOLD,20));
         stop4Label.setForeground(Color.orange);
 
-        stop4Txt.setBounds(200,680,150,30);
+        stop4Txt.setBounds(200,780,150,30);
 
-        stop5Label.setBounds(10,730,180,30);
+        stop5Label.setBounds(10,830,180,30);
         stop5Label.setFont(new Font("Arial",Font.BOLD,20));
         stop5Label.setForeground(Color.orange);
 
-        stop5Txt.setBounds(200,730,150,30);
+        stop5Txt.setBounds(200,830,150,30);
 
 
         JButton searchButton=new JButton("Search");
@@ -1040,7 +1304,10 @@ public class ManageRoutePage extends JFrame {
                         arrivalCheckbox.setVisible(true);
                         selectStopCheckbox.setVisible(true);
                         travelKMCheckbox.setVisible(true);
-                        timeTakenCheckbox.setVisible(true);
+                        stopRouteIDCheckbox.setVisible(true);
+                        departureTimeCheckbox.setVisible(true);
+                        arrivalTimeCheckbox.setVisible(true);
+
                         found = true;
                         break;
                     }
@@ -1062,10 +1329,6 @@ public class ManageRoutePage extends JFrame {
                 {
                     if (tableModel.getValueAt(i, 0).equals(val))
                     {
-                        String departure=departureTxt.getText();
-                        String arrival=arrivalTxt.getText();
-                        String travelKM=travelKMTxt.getText()+" KM";
-                        String timeTaken=timeTakenTxt.getText()+" hours";
                         String stop1=stop1Txt.getText();
                         String stop2=stop2Txt.getText();
                         String stop3=stop3Txt.getText();
@@ -1074,12 +1337,35 @@ public class ManageRoutePage extends JFrame {
 
                         if(departureCheckbox.isSelected())
                         {
+                            String departure=departureTxt.getText();
                             recTable.setValueAt(departure,i,1);
 
+                            String updateQuery="update RouteDummy set Departure=? where RouteID=?";
+                            try {
+                                PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                pst.setString(1,departure);
+                                pst.setInt(2,Integer.parseInt(val));
+                                pst.executeUpdate();
+
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
                         }
                         if (arrivalCheckbox.isSelected())
                         {
+                            String arrival=arrivalTxt.getText();
                             recTable.setValueAt(arrival,i,2);
+
+                            String updateQuery="update RouteDummy set Arrival=? where RouteID=?";
+                            try {
+                                PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                pst.setString(1,arrival);
+                                pst.setInt(2,Integer.parseInt(val));
+                                pst.executeUpdate();
+
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
 
                         }
                         if(selectStopCheckbox.isSelected())
@@ -1087,17 +1373,50 @@ public class ManageRoutePage extends JFrame {
                             if(r1.isSelected())
                             {
                                 recTable.setValueAt(stop1,i,3);
+                                String updateQuery="update RouteDummy set Stop1=? where RouteID=?";
+                                try {
+                                    PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                    pst.setString(1,stop1);
+                                    pst.setInt(2,Integer.parseInt(val));
+                                    pst.executeUpdate();
+
+                                } catch (SQLException ex) {
+                                    throw new RuntimeException(ex);
+                                }
                             }
                             if(r2.isSelected())
                             {
                                 recTable.setValueAt(stop1,i,3);
                                 recTable.setValueAt(stop2,i,4);
+                                String updateQuery="update RouteDummy set Stop1=?,Stop2=? where RouteID=?";
+                                try {
+                                    PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                    pst.setString(1,stop1);
+                                    pst.setString(2,stop2);
+                                    pst.setInt(3,Integer.parseInt(val));
+                                    pst.executeUpdate();
+
+                                } catch (SQLException ex) {
+                                    throw new RuntimeException(ex);
+                                }
                             }
                             if(r3.isSelected())
                             {
                                 recTable.setValueAt(stop1,i,3);
                                 recTable.setValueAt(stop2,i,4);
                                 recTable.setValueAt(stop3,i,5);
+                                String updateQuery="update RouteDummy set Stop1=?,Stop2=?,Stop3=? where RouteID=?";
+                                try {
+                                    PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                    pst.setString(1,stop1);
+                                    pst.setString(2,stop2);
+                                    pst.setString(3,stop3);
+                                    pst.setInt(4,Integer.parseInt(val));
+                                    pst.executeUpdate();
+
+                                } catch (SQLException ex) {
+                                    throw new RuntimeException(ex);
+                                }
                             }
                             if(r4.isSelected())
                             {
@@ -1105,6 +1424,19 @@ public class ManageRoutePage extends JFrame {
                                 recTable.setValueAt(stop2,i,4);
                                 recTable.setValueAt(stop3,i,5);
                                 recTable.setValueAt(stop4,i,6);
+                                String updateQuery="update RouteDummy set Stop1=?,Stop2=?,Stop3=?,Stop4=? where RouteID=?";
+                                try {
+                                    PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                    pst.setString(1,stop1);
+                                    pst.setString(2,stop2);
+                                    pst.setString(3,stop3);
+                                    pst.setString(4,stop4);
+                                    pst.setInt(5,Integer.parseInt(val));
+                                    pst.executeUpdate();
+
+                                } catch (SQLException ex) {
+                                    throw new RuntimeException(ex);
+                                }
                             }
                             if(r5.isSelected())
                             {
@@ -1113,24 +1445,93 @@ public class ManageRoutePage extends JFrame {
                                 recTable.setValueAt(stop3,i,5);
                                 recTable.setValueAt(stop4,i,6);
                                 recTable.setValueAt(stop5,i,7);
+                                String updateQuery="update RouteDummy set Stop1=?,Stop2=?,Stop3=?,Stop4=?,Stop5=? where RouteID=?";
+                                try {
+                                    PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                    pst.setString(1,stop1);
+                                    pst.setString(2,stop2);
+                                    pst.setString(3,stop3);
+                                    pst.setString(4,stop4);
+                                    pst.setString(5,stop5);
+                                    pst.setInt(6,Integer.parseInt(val));
+                                    pst.executeUpdate();
+
+                                } catch (SQLException ex) {
+                                    throw new RuntimeException(ex);
+                                }
                             }
                         }
                         if(travelKMCheckbox.isSelected())
                         {
-                            recTable.setValueAt(travelKM,i,8);
+                            int travelKM=Integer.parseInt(travelKMTxt.getText());
+                            recTable.setValueAt(travelKM,i,9);
+                            String updateQuery="update RouteDummy set TravelKM=? where RouteID=?";
+                            try {
+                                PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                pst.setInt(1,travelKM);
+                                pst.setInt(2,Integer.parseInt(val));
+                                pst.executeUpdate();
+
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
 
                         }
-                        if(timeTakenCheckbox.isSelected())
+                        if(stopRouteIDCheckbox.isSelected())
                         {
-                            recTable.setValueAt(timeTaken,i,9);
+                            int StopRouteID =Integer.parseInt(stopRouteIDTxt.getText());
+                            recTable.setValueAt(StopRouteID,i,8);
+                            String updateQuery="update RouteDummy set StopRouteID=? where RouteID=?";
+                            try {
+                                PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                pst.setInt(1,StopRouteID);
+                                pst.setInt(2,Integer.parseInt(val));
+                                pst.executeUpdate();
+
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
+
                         }
 
+                        if(departureTimeCheckbox.isSelected())
+                        {
+                            String departureTime=departureTimeTxt.getText();
+                            recTable.setValueAt(departureTime,i,10);
+                            String updateQuery="update RouteDummy set DepartureTime=? where RouteID=?";
+                            try {
+                                PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                pst.setString(1,departureTime);
+                                pst.setInt(2,Integer.parseInt(val));
+                                pst.executeUpdate();
+
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
+
+                        }
+                        if(arrivalTimeCheckbox.isSelected())
+                        {
+                            String arrivalTime=arrivalTimeTxt.getText();
+                            recTable.setValueAt(arrivalTime,i,11);
+                            String updateQuery="update RouteDummy set ArrivalTime=? where RouteID=?";
+                            try {
+                                PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                pst.setString(1,arrivalTime);
+                                pst.setInt(2,Integer.parseInt(val));
+                                pst.executeUpdate();
+
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        }
                         editDialog.dispose();
                         break;
                     }
                 }
             }
         });
+
 
         selectStopCheckbox.addActionListener(new ActionListener() {
             @Override
@@ -1164,12 +1565,50 @@ public class ManageRoutePage extends JFrame {
                     stop5Txt.setVisible(false);
 
                     editButton.setVisible(false);
-                    editButton.setBounds(130,530,100,30);
+                    //editButton.setBounds(130,530,100,30);
 
                 }
             }
         });
 
+
+        departureTimeCheckbox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(departureTimeCheckbox.isSelected())
+                {
+                    departureTimeLLabel.setVisible(true);
+                    departureTimeTxt.setVisible(true);
+                    editButton.setVisible(true);
+                }
+                else{
+                    departureTimeLLabel.setVisible(false);
+                    departureTimeTxt.setVisible(false);
+                    editButton.setVisible(false);
+
+
+                }
+            }
+        });
+
+        arrivalTimeCheckbox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(arrivalTimeCheckbox.isSelected())
+                {
+                    arrivalTimeLLabel.setVisible(true);
+                    arrivalTimeTxt.setVisible(true);
+                    editButton.setVisible(true);
+                }
+                else {
+                    arrivalTimeTxt.setVisible(false);
+                    arrivalTimeLLabel.setVisible(false);
+                    editButton.setVisible(false);
+
+                }
+
+            }
+        });
 
         departureCheckbox.addActionListener(new ActionListener() {
             @Override
@@ -1213,19 +1652,22 @@ public class ManageRoutePage extends JFrame {
             }
         });
 
-        timeTakenCheckbox.addActionListener(new ActionListener() {
+        stopRouteIDCheckbox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(timeTakenCheckbox.isSelected())
+                if(stopRouteIDCheckbox.isSelected())
                 {
-                    timeTakenLabel.setVisible(true);
-                    timeTakenTxt.setVisible(true);
+                    stopRouteIDLabel.setVisible(true);
+                    stopRouteIDTxt.setVisible(true);
+                    editButton.setVisible(true);
 
                 }
                 else
                 {
-                    timeTakenLabel.setVisible(false);
-                    timeTakenTxt.setVisible(false);
+                    stopRouteIDLabel.setVisible(false);
+                    stopRouteIDTxt.setVisible(false);
+                    editButton.setVisible(false);
+
 
                 }
             }
@@ -1238,11 +1680,13 @@ public class ManageRoutePage extends JFrame {
                 {
                     travelKMLabel.setVisible(true);
                     travelKMTxt.setVisible(true);
+                    editButton.setVisible(true);
                 }
                 else
                 {
                     travelKMLabel.setVisible(false);
                     travelKMTxt.setVisible(false);
+                    editButton.setVisible(false);
                 }
             }
         });
@@ -1256,15 +1700,21 @@ public class ManageRoutePage extends JFrame {
         inputPanel.add(departureCheckbox);
         inputPanel.add(arrivalCheckbox);
         inputPanel.add(travelKMCheckbox);
-        inputPanel.add(timeTakenCheckbox);
+        inputPanel.add(stopRouteIDCheckbox);
+        inputPanel.add(departureTimeCheckbox);
+        inputPanel.add(arrivalTimeCheckbox);
         inputPanel.add(departureLabel);
         inputPanel.add(departureTxt);
         inputPanel.add(arrivalLabel);
         inputPanel.add(arrivalTxt);
         inputPanel.add(travelKMLabel);
         inputPanel.add(travelKMTxt);
-        inputPanel.add(timeTakenLabel);
-        inputPanel.add(timeTakenTxt);
+        inputPanel.add(departureTimeLLabel);
+        inputPanel.add(departureTimeTxt);
+        inputPanel.add(arrivalTimeLLabel);
+        inputPanel.add(arrivalTimeTxt);
+        inputPanel.add(stopRouteIDLabel);
+        inputPanel.add(stopRouteIDTxt);
         inputPanel.add(selectStopLabel);
         inputPanel.add(r1);
         inputPanel.add(r2);
