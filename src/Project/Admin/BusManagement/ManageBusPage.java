@@ -238,8 +238,8 @@ public class ManageBusPage extends JFrame {
 
         JLabel busIDSearchLabel =new JLabel();
         busIDSearchLabel.setText(" Bus ID:");
-        busIDSearchLabel.setBounds(300,80,180,50);
-        busIDSearchLabel.setFont(new Font("Arial",Font.BOLD,15));
+        busIDSearchLabel.setBounds(280,80,180,50);
+        busIDSearchLabel.setFont(new Font("Arial",Font.BOLD,20));
         busIDSearchLabel.setForeground(Color.orange);
 
         JTextField busIDSearchTxt =new JTextField();
@@ -256,57 +256,50 @@ public class ManageBusPage extends JFrame {
 
                 String busid=busIDSearchTxt.getText();
                 boolean found=false;
-                for (int i = 0; i < tableModel.getRowCount(); i++)
-                {
 
-                    if (tableModel.getValueAt(i,0).equals(busid))
+                String query="Select * from Bus where busID=?";
+                try {
+                    PreparedStatement pst=connection.prepareStatement(query);
+                    pst.setInt(1,Integer.parseInt(busid));
+                    ResultSet rs=pst.executeQuery();
+                    while (rs.next())
                     {
-                        String query="Select * from busDummy where busID=?";
-                        try {
+                        tableModel.setRowCount(0);
+                        int id=rs.getInt("BusID");
+                        int Mgrid=rs.getInt("ManagerID");
+                        String BusName=rs.getString("BusName");
+                        String BusCompany=rs.getString("BusCompany");
+                        String model=rs.getString("Model");
+                        String registrationNo=rs.getString("RegistrationNo");
+                        String chassisNo=rs.getString("ChassisNo");
+                        int econ=rs.getInt("EconomySeats");
+                        int lux=rs.getInt("LuxurySeats");
+                        int fc=rs.getInt("FirstClassSeats");
+                        int total=rs.getInt("TotalSeats");
+                        String availability=rs.getString("Availability");
 
-                            PreparedStatement pst=connection.prepareStatement(query);
-                            pst.setInt(1,Integer.parseInt(busid));
-                            ResultSet rs=pst.executeQuery();
-                            tableModel.setRowCount(0);
-                            while (rs.next())
-                            {
-                                int id=rs.getInt("BusID");
-                                int Mgrid=rs.getInt("ManagerID");
-                                String BusName=rs.getString("BusName");
-                                String BusCompany=rs.getString("BusCompany");
-                                String model=rs.getString("Model");
-                                String registrationNo=rs.getString("RegistrationNo");
-                                String chassisNo=rs.getString("ChassisNo");
-                                int econ=rs.getInt("EconomySeats");
-                                int lux=rs.getInt("LuxurySeats");
-                                int fc=rs.getInt("FirstClassSeats");
-                                int total=rs.getInt("TotalSeats");
-                                String availability=rs.getString("Availability");
+                        String sID=Integer.toString(id);
+                        String mgrid=Integer.toString(Mgrid);
+                        String EconomySeats=Integer.toString(econ);
+                        String LuxurySeats=Integer.toString(lux);
+                        String firstClassSeats=Integer.toString(fc);
+                        String totalCapacity=Integer.toString(total);
+                        String economy = generateSeatRange("E", 1, econ);
+                        String luxury = generateSeatRange("L", 1, lux);
+                        String firstclass = generateSeatRange("F", 1, fc);
 
-                                String sID=Integer.toString(id);
-                                String mgrid=Integer.toString(Mgrid);
-                                String EconomySeats=Integer.toString(econ);
-                                String LuxurySeats=Integer.toString(lux);
-                                String firstClassSeats=Integer.toString(fc);
-                                String totalCapacity=Integer.toString(total);
-                                String economy = generateSeatRange("E", 1, econ);
-                                String luxury = generateSeatRange("L", 1, lux);
-                                String firstclass = generateSeatRange("F", 1, fc);
-
-                                String[] data={sID,BusCompany,BusName,model,registrationNo,chassisNo,EconomySeats,LuxurySeats,firstClassSeats,totalCapacity,
-                                        economy,luxury,firstclass,mgrid,availability};
-                                tableModel.addRow(data);
-                            }
-                        }
-                        catch (SQLException ex)
-                        {
-                            throw new RuntimeException(ex);
-                        }
-
+                        String[] data={sID,BusCompany,BusName,model,registrationNo,chassisNo,EconomySeats,LuxurySeats,firstClassSeats,totalCapacity,
+                                economy,luxury,firstclass,mgrid,availability};
+                        tableModel.addRow(data);
                         found = true;
-                        break;
+
                     }
                 }
+                catch (SQLException ex)
+                {
+                    throw new RuntimeException(ex);
+                }
+
                 if (!found) {
                     JOptionPane.showMessageDialog(null, "Record with Bus ID " +busid+ " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
                 }
@@ -316,7 +309,7 @@ public class ManageBusPage extends JFrame {
 
         JButton addButton =new JButton();
         addButton.setText("+ Add");
-        addButton.setBounds(240,160,80,30);
+        addButton.setBounds(250,160,90,30);
         addButton.setBackground(Color.GREEN);
         addButton.addActionListener(new ActionListener() {
             @Override
@@ -328,7 +321,7 @@ public class ManageBusPage extends JFrame {
 
         JButton removeButton =new JButton();
         removeButton.setText("- Remove");
-        removeButton.setBounds(330,160,90,30);
+        removeButton.setBounds(350,160,90,30);
         removeButton.setBackground(Color.RED);
         removeButton.addActionListener(new ActionListener() {
             @Override
@@ -342,7 +335,7 @@ public class ManageBusPage extends JFrame {
 
         JButton editButton =new JButton();
         editButton.setText("Edit");
-        editButton.setBounds(430,160,90,30);
+        editButton.setBounds(450,160,90,30);
         editButton.setBackground(Color.PINK);
         editButton.addActionListener(new ActionListener() {
             @Override
@@ -364,7 +357,7 @@ public class ManageBusPage extends JFrame {
         recTable=new JTable(tableModel);
         recTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // This ensures horizontal scrolling
 
-        String query="Select * from busdummy";
+        String query="Select * from Bus";
         try {
             PreparedStatement ps=connection.prepareStatement(query);
             ResultSet rs=ps.executeQuery();
@@ -565,16 +558,15 @@ public class ManageBusPage extends JFrame {
                 int totalSeat=economySeat+luxurySeat+firstSeat;
                 try{
                     Connection connection = Database.setConnection();
-                    String insertQuery = "INSERT INTO busdummy (ManagerID,BusCompany,BusName,Model, RegistrationNo,ChassisNo, EconomySeats, LuxurySeats, FirstClassSeats, TotalSeats,Availability) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+                    String insertQuery = "INSERT INTO Bus (ManagerID,BusCompany,BusName,Model, RegistrationNo,ChassisNo, EconomySeats, LuxurySeats, FirstClassSeats, TotalSeats,Availability) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
                     PreparedStatement psmt= connection.prepareStatement(insertQuery);
                     if(managerIDTxt.getText().equals(""))
                     {
-                        psmt.setInt(1,0);
+                        psmt.setString(1,null);
 
                     }
                     else {
-                        int mangID=Integer.parseInt(managerIDTxt.getText());
-                        psmt.setInt(1,mangID);
+                        psmt.setInt(1,Integer.parseInt(managerIDTxt.getText()));
 
                     }
                     psmt.setString(2,busCompTxt.getText());
@@ -586,11 +578,11 @@ public class ManageBusPage extends JFrame {
                     psmt.setInt(8,luxurySeat);
                     psmt.setInt(9,firstSeat);
                     psmt.setInt(10,totalSeat);
-                    psmt.setString(11,"Disable");
+                    psmt.setString(11,"Active");
                     psmt.executeUpdate();
 
 
-                    String query="Select busID from busDummy ";
+                    String query="Select busID from Bus ";
                     PreparedStatement pst = connection.prepareStatement(query);
                     ResultSet rs = pst.executeQuery();
                     while(rs.next()){
@@ -658,19 +650,19 @@ public class ManageBusPage extends JFrame {
 
         JLabel addRecLabel=new JLabel();
         addRecLabel.setText("Remove Record");
-        addRecLabel.setFont(new Font("Arial",Font.BOLD,22));
+        addRecLabel.setFont(new Font("Arial",Font.BOLD,25));
         addRecLabel.setForeground(Color.orange);
         addRecLabel.setBounds(100, 30,240,30);
 
 
         JLabel busIDLabel =new JLabel();
         busIDLabel.setText("Bus ID:");
-        busIDLabel.setBounds(10,100,180,30);
-        busIDLabel.setFont(new Font("Arial",Font.BOLD,17));
+        busIDLabel.setBounds(50,100,180,30);
+        busIDLabel.setFont(new Font("Arial",Font.BOLD,22));
         busIDLabel.setForeground(Color.orange);
 
         JTextField busIDTxt =new JTextField();
-        busIDTxt.setBounds(200,100,150,30);
+        busIDTxt.setBounds(180,100,150,30);
 
 
         JButton searchButton=new JButton("Search");
@@ -687,7 +679,7 @@ public class ManageBusPage extends JFrame {
 
                     if (tableModel.getValueAt(i,0).equals(idVal))
                     {
-                        String delQuery="DELETE FROM busDummy WHERE BusID=?";
+                        String delQuery="DELETE FROM Bus WHERE BusID=?";
 
                         try
                         {
@@ -892,7 +884,7 @@ public class ManageBusPage extends JFrame {
                             String economySeats = generateSeatRange("E", 1, econSeat);
                             recTable.setValueAt(economySeats,i,10);
 
-                            String editQuery="update BusDummy set EconomySeats=? where BusID=? ";
+                            String editQuery="update Bus set EconomySeats=? where BusID=? ";
                             try {
                                 PreparedStatement psmt=connection.prepareStatement(editQuery);
                                 psmt.setInt(1,econSeat);
@@ -921,7 +913,7 @@ public class ManageBusPage extends JFrame {
                             String luxurySeat = generateSeatRange("L", 1, luxurySeats);
                             recTable.setValueAt(luxurySeat,i,11);
 
-                            String editQuery="update BusDummy set LuxurySeats=? where BusID=? ";
+                            String editQuery="update Bus set LuxurySeats=? where BusID=? ";
                             try {
                                 PreparedStatement psmt=connection.prepareStatement(editQuery);
                                 psmt.setInt(1,luxurySeats);
@@ -948,7 +940,7 @@ public class ManageBusPage extends JFrame {
 
                             String firstClassSeats = generateSeatRange("F", 1, firstCSeat);
                             recTable.setValueAt(firstClassSeats,i,12);
-                            String editQuery="update BusDummy set FirstClassSeats=? where BusID=? ";
+                            String editQuery="update Bus set FirstClassSeats=? where BusID=? ";
                             try {
                                 PreparedStatement psmt=connection.prepareStatement(editQuery);
                                 psmt.setInt(1,luxurySeats);
@@ -964,14 +956,14 @@ public class ManageBusPage extends JFrame {
                         {
                             int id=Integer.parseInt(busIDVal);
                             recTable.setValueAt(status, i, 14); // Update Status
-                            String editQuery="update BusDummy set Availability=? where BusID=? ";
+                            String editQuery="update Bus set Availability=? where BusID=? ";
                             try {
                                 PreparedStatement psmt=connection.prepareStatement(editQuery);
                                 psmt.setString(1,status);
                                 psmt.setInt(2,id);
                                 psmt.executeUpdate();
-                                System.out.println("Updated");
-                            } catch (SQLException ex) {
+                            } catch (SQLException ex)
+                            {
                                 throw new RuntimeException(ex);
                             }
                         }

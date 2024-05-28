@@ -10,6 +10,7 @@ import Project.Admin.UserMangement.ManageDriverPage;
 import Project.Admin.UserMangement.ManageManagerPage;
 import Project.Admin.UserMangement.ManageUserPage;
 import Project.Admin.ViewFeedbackPage;
+import Project.Database;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -20,17 +21,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class ManagePricingPage extends JFrame{
 
     DefaultTableModel tableModel;
     JTable recTable;
-
+    Connection connection= Database.setConnection();
 
     public ManagePricingPage() {
         JLabel label=new JLabel();
         label.setText("Manage Pricing");
-        label.setBounds(450,20,250,50);
+        label.setBounds(430,20,250,50);
         label.setFont(new Font("Arial",Font.BOLD,25));
         label.setForeground(Color.orange);
 
@@ -239,26 +244,54 @@ public class ManagePricingPage extends JFrame{
 
         JLabel priceIDLabel =new JLabel();
         priceIDLabel.setText("Price ID:");
-        priceIDLabel.setBounds(240,80,150,50);
-        priceIDLabel.setFont(new Font("Arial",Font.BOLD,18));
+        priceIDLabel.setBounds(300,80,150,50);
+        priceIDLabel.setFont(new Font("Arial",Font.BOLD,22));
         priceIDLabel.setForeground(Color.orange);
 
         JTextField priceIDTxt =new JTextField();
         priceIDTxt.setBounds(400,90,150,30);
 
         JButton searchButton=new JButton("Search");
-        searchButton.setBounds(570,90,100,30);
+        searchButton.setBounds(580,90,100,30);
         searchButton.setBackground(Color.cyan);
-        searchButton.addActionListener(new ActionListener() {
+        searchButton.addActionListener(new ActionListener()
+        {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent e)
+            {
+                int prcID=Integer.parseInt(priceIDTxt.getText());
+                boolean found=false;
+                String query="select * from Price where PriceID=?";
+                try
+                {
+                    PreparedStatement psmt=connection.prepareStatement(query);
+                    psmt.setInt(1,prcID);
+                    ResultSet rs=psmt.executeQuery();
+                    while (rs.next())
+                    {
+                        tableModel.setRowCount(0);
+                        int priceID=rs.getInt("Price ID");
+                        int economySeatPrice=rs.getInt("EconomySeatPrice");
+                        int luxurySeatPrice=rs.getInt("LuxurySeatPrice");
+                        int firstClassSeatPrice=rs.getInt("FirstClassSeatPrice");
+                        int kmPrice=rs.getInt("KMPrice");
 
+                        String [] row={Integer.toString(priceID),Integer.toString(economySeatPrice),Integer.toString(luxurySeatPrice),
+                                Integer.toString(firstClassSeatPrice),Integer.toString(kmPrice)};
+
+                        tableModel.addRow(row);
+                    }
+                }
+                catch (SQLException ex)
+                {
+                    throw new RuntimeException(ex);
+                }
             }
         });
 
         JButton addButton =new JButton();
         addButton.setText("+ Add");
-        addButton.setBounds(240,140,80,30);
+        addButton.setBounds(250,140,90,30);
         addButton.setBackground(Color.GREEN);
         addButton.addActionListener(new ActionListener() {
             @Override
@@ -270,7 +303,7 @@ public class ManagePricingPage extends JFrame{
 
         JButton removeButton =new JButton();
         removeButton.setText("- Remove");
-        removeButton.setBounds(330,140,90,30);
+        removeButton.setBounds(350,140,90,30);
         removeButton.setBackground(Color.RED);
         removeButton.addActionListener(new ActionListener() {
             @Override
@@ -282,7 +315,7 @@ public class ManagePricingPage extends JFrame{
 
         JButton editButton =new JButton();
         editButton.setText("Edit");
-        editButton.setBounds(430,140,90,30);
+        editButton.setBounds(450,140,90,30);
         editButton.setBackground(Color.PINK);
         editButton.addActionListener(new ActionListener() {
             @Override
@@ -292,15 +325,12 @@ public class ManagePricingPage extends JFrame{
             }
         });
         JPanel tabPanel=new JPanel();
-        tabPanel.setBounds(240,190,600,350);
+        tabPanel.setBounds(250,190,580,350);
         tabPanel.setLayout(null);
 
-        String[][] data={
-
-        };
         String[]column={"Price ID","Economy Seat Price","Luxury Seat Price","First-Class Seat Price","KM price"};
 
-        tableModel=new DefaultTableModel(data,column);
+        tableModel=new DefaultTableModel(column,0);
         recTable=new JTable(tableModel);
         recTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // This ensures horizontal scrolling
 
@@ -310,15 +340,39 @@ public class ManagePricingPage extends JFrame{
         recTable.getColumnModel().getColumn(3).setPreferredWidth(150);
         recTable.getColumnModel().getColumn(4).setPreferredWidth(85);
 
+        String query="Select * from Price";
+        try
+        {
+            PreparedStatement psmt=connection.prepareStatement(query);
+            ResultSet rs=psmt.executeQuery();
+            while (rs.next())
+            {
+                int priceID=rs.getInt("PriceID");
+                int economySeatPrice=rs.getInt("EconomySeatPrice");
+                int luxurySeatPrice=rs.getInt("LuxurySeatPrice");
+                int firstClassSeatPrice=rs.getInt("FirstClassSeatPrice");
+                int kmPrice=rs.getInt("KMPrice");
+
+                String [] row={Integer.toString(priceID),Integer.toString(economySeatPrice),Integer.toString(luxurySeatPrice),
+                        Integer.toString(firstClassSeatPrice),Integer.toString(kmPrice)};
+
+                tableModel.addRow(row);
+
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
         JScrollPane scrollPane=new JScrollPane(recTable);
-        scrollPane.setBounds(1,1,600,350);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setBounds(1,1,590,350);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         tabPanel.add(scrollPane);
 
 
 
-        setTitle("Manage Pricing Page");
+        setTitle("Manage Price Page");
         setLayout(null);
         setSize(900, 650);
         getContentPane().setBackground(Color.darkGray);
@@ -357,72 +411,90 @@ public class ManagePricingPage extends JFrame{
         addRecLabel.setForeground(Color.orange);
         addRecLabel.setBounds(150, 30,240,30);
 
-        JLabel priceIDLabel =new JLabel();
-        priceIDLabel.setText("Price ID:");
-        priceIDLabel.setBounds(10,100,220,30);
-        priceIDLabel.setFont(new Font("Arial",Font.BOLD,20));
-        priceIDLabel.setForeground(Color.orange);
-
-        JTextField priceIDTxt =new JTextField();
-        priceIDTxt.setBounds(230,100,150,30);
-
 
         JLabel econSeatRateLabel =new JLabel();
         econSeatRateLabel.setText("Economy Seat Price:");
-        econSeatRateLabel.setBounds(10,150,220,30);
+        econSeatRateLabel.setBounds(10,100,220,30);
         econSeatRateLabel.setFont(new Font("Arial",Font.BOLD,20));
         econSeatRateLabel.setForeground(Color.orange);
 
         JTextField econSeatRateTxt =new JTextField();
-        econSeatRateTxt.setBounds(230,150,150,30);
+        econSeatRateTxt.setBounds(230,100,150,30);
 
         JLabel luxSeatRateLabel =new JLabel();
         luxSeatRateLabel.setText("Luxury Seat Price:");
-        luxSeatRateLabel.setBounds(10,200,220,30);
+        luxSeatRateLabel.setBounds(10,150,220,30);
         luxSeatRateLabel.setFont(new Font("Arial",Font.BOLD,20));
         luxSeatRateLabel.setForeground(Color.orange);
 
         JTextField luxSeatRateTxt =new JTextField();
-        luxSeatRateTxt.setBounds(230,200,150,30);
+        luxSeatRateTxt.setBounds(230,150,150,30);
 
         JLabel firstCSeatRateLabel =new JLabel();
         firstCSeatRateLabel.setText("First-Class Seat Price:");
-        firstCSeatRateLabel.setBounds(10,250,220,30);
+        firstCSeatRateLabel.setBounds(10,200,220,30);
         firstCSeatRateLabel.setFont(new Font("Arial",Font.BOLD,20));
         firstCSeatRateLabel.setForeground(Color.orange);
 
         JTextField firstCSeatRateTxt =new JTextField();
-        firstCSeatRateTxt.setBounds(230,250,150,30);
+        firstCSeatRateTxt.setBounds(230,200,150,30);
 
         JLabel kmPriceLabel =new JLabel();
         kmPriceLabel.setText("KM Price:");
-        kmPriceLabel.setBounds(10,300,220,30);
+        kmPriceLabel.setBounds(10,250,220,30);
         kmPriceLabel.setFont(new Font("Arial",Font.BOLD,20));
         kmPriceLabel.setForeground(Color.orange);
 
         JTextField kmPriceTxt =new JTextField();
-        kmPriceTxt.setBounds(230,300,150,30);
+        kmPriceTxt.setBounds(230,250,150,30);
 
 
         JButton addButton=new JButton("Add");
-        addButton.setBounds(150,380,100,40);
+        addButton.setBounds(150,330,100,40);
         addButton.setBackground(Color.cyan);
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                int maxVal=0,prcID=0;
 
 
+                String insertQuery="insert into Price(EconomySeatPrice,LuxurySeatPrice,FirstClassSeatPrice,KMPrice)values (?,?,?,?)";
+                try {
+                    PreparedStatement psmt =connection.prepareStatement(insertQuery);
+                    psmt.setInt(1,Integer.parseInt(econSeatRateTxt.getText()));
+                    psmt.setInt(2,Integer.parseInt(luxSeatRateTxt.getText()));
+                    psmt.setInt(3,Integer.parseInt(firstCSeatRateTxt.getText()));
+                    psmt.setInt(4,Integer.parseInt(kmPriceTxt.getText()));
+                    psmt.executeUpdate();
 
-                String[] row={priceIDTxt.getText(), econSeatRateTxt.getText(), luxSeatRateTxt.getText(),
+                    String query="Select PriceID from Price ";
+                    PreparedStatement pst = connection.prepareStatement(query);
+                    ResultSet rs = pst.executeQuery();
+                    while(rs.next()) {
+
+                        prcID = rs.getInt(1);
+                        if (prcID > maxVal) {
+                            maxVal = prcID;
+
+                        }
+
+                    }
+
+                }
+                catch (SQLException ex)
+                {
+                    throw new RuntimeException(ex);
+                }
+
+                String[] row={ Integer.toString(maxVal), econSeatRateTxt.getText(), luxSeatRateTxt.getText(),
                         firstCSeatRateTxt.getText(),kmPriceTxt.getText()};
                 tableModel.addRow(row);
                 addDialog.dispose();
+
             }
         });
 
         addDialog.add(addRecLabel);
-        addDialog.add(priceIDLabel);
-        addDialog.add(priceIDTxt);
         addDialog.add(luxSeatRateLabel);
         addDialog.add(luxSeatRateTxt);
         addDialog.add(econSeatRateLabel);
@@ -478,10 +550,23 @@ public class ManagePricingPage extends JFrame{
                 for (int i = 0; i < tableModel.getRowCount(); i++)
                 {
                     if (tableModel.getValueAt(i, 0).equals(IDVal))
-                    { // Checking Reg number at index 4 & Bus ID at index 0
+                    {
+                        String delQuery="delete  from Price where PriceID=?";
+                        try
+                        {
+                            PreparedStatement preparedStatement=connection.prepareStatement(delQuery);
+                            preparedStatement.setInt(1,Integer.parseInt(IDVal));
+                            preparedStatement.executeUpdate();
+
+                        } catch (SQLException ex)
+                        {
+                            throw new RuntimeException(ex);
+                        }
                         tableModel.removeRow(i);
                         found = true;
+
                         break;
+
                     }
                 }
                 if (!found) {
@@ -646,21 +731,70 @@ public class ManagePricingPage extends JFrame{
                         if(econSeatRateCheckBox.isSelected())
                         {
                             recTable.setValueAt(econSeatRateTxt.getText(),i,1);
+                            String editQuery="Update Price set EconomySeatPrice=? where PriceID=?";
+                            try
+                            {
+                                PreparedStatement psmt=connection.prepareStatement(editQuery);
+                                psmt.setInt(1,Integer.parseInt(econSeatRateTxt.getText()));
+                                psmt.setInt(2,Integer.parseInt(val));
+                                psmt.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
 
                         }
                         if (luxSeatRateCheckBox.isSelected())
                         {
                             recTable.setValueAt(luxSeatRateTxt.getText(),i,2);
+                            String editQuery="Update Price set LuxurySeatPrice=? where PriceID=?";
+                            try
+                            {
+                                PreparedStatement psmt=connection.prepareStatement(editQuery);
+                                psmt.setInt(1,Integer.parseInt(luxSeatRateTxt.getText()));
+                                psmt.setInt(2,Integer.parseInt(val));
+                                psmt.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
+
 
                         }
                         if(firstCSeatRateCheckBox.isSelected())
                         {
                             recTable.setValueAt(firstCSeatRateTxt.getText(),i,3);
+                            String editQuery="Update Price set FirstClassSeatPrice=? where PriceID=?";
+                            try
+                            {
+                                PreparedStatement psmt=connection.prepareStatement(editQuery);
+                                psmt.setInt(1,Integer.parseInt(firstCSeatRateTxt.getText()));
+                                psmt.setInt(2,Integer.parseInt(val));
+                                psmt.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
 
                         }
                         if(kmPriceCheckBox.isSelected())
                         {
                             recTable.setValueAt(kmPriceTxt.getText(),i,4);
+                            String editQuery="Update Price set KMPrice=? where PriceID=?";
+                            try
+                            {
+                                PreparedStatement psmt=connection.prepareStatement(editQuery);
+                                psmt.setInt(1,Integer.parseInt(kmPriceTxt.getText()));
+                                psmt.setInt(2,Integer.parseInt(val));
+                                psmt.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
 
                         }
 

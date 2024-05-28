@@ -10,6 +10,7 @@ import Project.Admin.UserMangement.ManageDriverPage;
 import Project.Admin.UserMangement.ManageManagerPage;
 import Project.Admin.UserMangement.ManageUserPage;
 import Project.Admin.ViewFeedbackPage;
+import Project.Database;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -20,12 +21,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 public class AddBookingPage extends JFrame{
 
     DefaultTableModel tableModel;
     JTable recTable;
-
+    Connection conn = Database.setConnection();
 
     public AddBookingPage() {
         JLabel label=new JLabel();
@@ -248,16 +253,50 @@ public class AddBookingPage extends JFrame{
         JButton searchButton=new JButton("Search");
         searchButton.setBounds(570,90,100,30);
         searchButton.setBackground(Color.cyan);
-        searchButton.addActionListener(new ActionListener() {
+        searchButton.addActionListener(new ActionListener()
+        {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent e)
+            {
+                String id=bookIDTxt.getText();
+                boolean found=false;
+                String query="Select * from Booking where BookID=?";
+                try {
+                    PreparedStatement pst=conn.prepareStatement(query);
+                    pst.setInt(1,Integer.parseInt(id));
+                    ResultSet rs=pst.executeQuery();
+                    while (rs.next())
+                    {
+                        tableModel.setRowCount(0);
+                        int bookID =rs.getInt("BookID");
+                        int routeID =rs.getInt("RouteID");
+                        int busID =rs.getInt("BusID");
+                        int driverID =rs.getInt("DriverID");
+                        int priceID =rs.getInt("PriceID");
+                        String date=rs.getString("Date");
+                        String bookingStatus=rs.getString("BookingStatus");
+                        String [] row= {Integer.toString(bookID), Integer.toString(routeID), Integer.toString(busID),
+                                Integer.toString(driverID), Integer.toString(priceID), date, bookingStatus};
+
+                        tableModel.addRow(row);
+                        found=true;
+                    }
+                }
+                catch (SQLException ex)
+                {
+                    throw new RuntimeException(ex);
+                }
+                if (!found)
+                {
+                    JOptionPane.showMessageDialog(null, "Record with Booking ID "+ id+ " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                }
 
             }
         });
 
         JButton addButton =new JButton();
         addButton.setText("+ Add");
-        addButton.setBounds(240,150,80,30);
+        addButton.setBounds(250,150,90,30);
         addButton.setBackground(Color.GREEN);
         addButton.addActionListener(new ActionListener() {
             @Override
@@ -268,7 +307,7 @@ public class AddBookingPage extends JFrame{
 
         JButton removeButton =new JButton();
         removeButton.setText("- Remove");
-        removeButton.setBounds(330,150,90,30);
+        removeButton.setBounds(350,150,90,30);
         removeButton.setBackground(Color.RED);
         removeButton.addActionListener(new ActionListener() {
             @Override
@@ -280,7 +319,7 @@ public class AddBookingPage extends JFrame{
 
         JButton editButton =new JButton();
         editButton.setText("Edit");
-        editButton.setBounds(430,150,90,30);
+        editButton.setBounds(450,150,90,30);
         editButton.setBackground(Color.PINK);
         editButton.addActionListener(new ActionListener() {
             @Override
@@ -289,29 +328,23 @@ public class AddBookingPage extends JFrame{
             }
         });
         JPanel tabPanel=new JPanel();
-        tabPanel.setBounds(240,190,600,350);
+        tabPanel.setBounds(250,190,600,350);
         tabPanel.setLayout(null);
 
-        String[][] data={
+        String[] column={"Booking ID","Route ID","Bus ID","Driver ID","Price ID","Date","Booking Status"};
 
-        };
-
-        String[] column={"BookID","RouteID","Departure","Arrival","Stop 1","Stop 2","Stop 3","Stop 4","Stop 5","Travel KM","Time Taken",
-                "BusID","Bus Company","Bus Name","Model","Registration Number","Chassis Number","Economy Seats","Luxury Seats","First-Class Seats","Total Seats",
-                "DriverID","Driver Name","License Number","Contact Number","CNIC Number","Date","Time"};
-
-        tableModel=new DefaultTableModel(data,column);
+        tableModel=new DefaultTableModel(column,0);
         recTable=new JTable(tableModel);
         recTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // This ensures horizontal
 
-        recTable.getColumnModel().getColumn(0).setPreferredWidth(90);//Booking ID
-        recTable.getColumnModel().getColumn(1).setPreferredWidth(90);//Route ID
-        recTable.getColumnModel().getColumn(2).setPreferredWidth(100);//Departure
-        recTable.getColumnModel().getColumn(3).setPreferredWidth(100);//Arrival
-        recTable.getColumnModel().getColumn(4).setPreferredWidth(100);//Stop 1
-        recTable.getColumnModel().getColumn(5).setPreferredWidth(100);//Stop 2
-        recTable.getColumnModel().getColumn(6).setPreferredWidth(100);//Stop 3
-        recTable.getColumnModel().getColumn(7).setPreferredWidth(100);//Stop 4
+        recTable.getColumnModel().getColumn(0).setPreferredWidth(100);//Booking ID
+        recTable.getColumnModel().getColumn(1).setPreferredWidth(100);//Route ID
+        recTable.getColumnModel().getColumn(2).setPreferredWidth(100);//Bus ID
+        recTable.getColumnModel().getColumn(3).setPreferredWidth(100);//Driver ID
+        recTable.getColumnModel().getColumn(4).setPreferredWidth(100);//Price ID
+        recTable.getColumnModel().getColumn(5).setPreferredWidth(100);//Date
+        recTable.getColumnModel().getColumn(6).setPreferredWidth(100);//Booking Status
+        /*recTable.getColumnModel().getColumn(7).setPreferredWidth(100);//Stop 4
         recTable.getColumnModel().getColumn(8).setPreferredWidth(100);//Stop 5
         recTable.getColumnModel().getColumn(9).setPreferredWidth(100);//Travel KM
         recTable.getColumnModel().getColumn(10).setPreferredWidth(100);//Time Taken
@@ -331,13 +364,38 @@ public class AddBookingPage extends JFrame{
         recTable.getColumnModel().getColumn(24).setPreferredWidth(130);//Contact Number
         recTable.getColumnModel().getColumn(25).setPreferredWidth(130);//CNIC Number
         recTable.getColumnModel().getColumn(26).setPreferredWidth(100);//Date
-        recTable.getColumnModel().getColumn(27).setPreferredWidth(100);//Time
+        recTable.getColumnModel().getColumn(27).setPreferredWidth(100);//Time*/
+
+        String query="Select * from Booking";
+        try
+        {
+            PreparedStatement pst=conn.prepareStatement(query);
+            ResultSet rs=pst.executeQuery();
+            while(rs.next())
+            {
+                int bookID =rs.getInt("BookID");
+                int routeID =rs.getInt("RouteID");
+                int busID =rs.getInt("BusID");
+                int driverID =rs.getInt("DriverID");
+                int priceID =rs.getInt("PriceID");
+                String date=rs.getString("Date");
+                String bookingStatus=rs.getString("BookingStatus");
+                String [] row={Integer.toString(bookID),Integer.toString(routeID),Integer.toString(busID),
+                        Integer.toString(driverID),Integer.toString(priceID),date,bookingStatus
+                };
+                tableModel.addRow(row);
+            }
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeException(e);
+        }
 
 
         JScrollPane scrollPane=new JScrollPane(recTable);
         scrollPane.setBounds(1,1,600,350);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         tabPanel.add(scrollPane);
 
         setTitle("Add Booking Page");
@@ -378,42 +436,116 @@ public class AddBookingPage extends JFrame{
         addRecLabel.setForeground(Color.orange);
         addRecLabel.setBounds(150, 30,240,30);
 
-        JLabel bookIDLabel =new JLabel();
-        bookIDLabel.setText("Book ID:");
-        bookIDLabel.setBounds(70,100,220,30);
-        bookIDLabel.setFont(new Font("Arial",Font.BOLD,20));
-        bookIDLabel.setForeground(Color.orange);
-
-        JTextField bookIDTxt =new JTextField();
-        bookIDTxt.setBounds(230,100,150,30);
-
 
         JLabel routeIDLabel =new JLabel();
         routeIDLabel.setText("Route ID:");
-        routeIDLabel.setBounds(70,150,220,30);
+        routeIDLabel.setBounds(70,100,220,30);
         routeIDLabel.setFont(new Font("Arial",Font.BOLD,20));
         routeIDLabel.setForeground(Color.orange);
 
-        JTextField routeIDTxt =new JTextField();
-        routeIDTxt.setBounds(230,150,150,30);
+        ArrayList<String> routeIDStatList = new ArrayList<>();
+        String routeIDQuery ="select RouteID from Route";
+        try
+        {
+            PreparedStatement rspst=conn.prepareStatement(routeIDQuery);
+            ResultSet rs=rspst.executeQuery();
+            while(rs.next())
+            {
+                String routeID=Integer.toString(rs.getInt("RouteID"));
+                routeIDStatList.add(routeID);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String[] routeState = routeIDStatList.toArray(new String[0]);
+
+        JComboBox routeIDCombobox =new JComboBox<>(routeState);
+        routeIDCombobox.setBounds(230,100,150,35);
+        //routeIDCombobox.setBackground(Color.orange);
+
 
         JLabel busIDLabel =new JLabel();
         busIDLabel.setText("Bus ID:");
-        busIDLabel.setBounds(70,200,220,30);
+        busIDLabel.setBounds(70,150,220,30);
         busIDLabel.setFont(new Font("Arial",Font.BOLD,20));
         busIDLabel.setForeground(Color.orange);
+        ArrayList<String> busStatList = new ArrayList<>();
 
-        JTextField busIDTxt =new JTextField();
-        busIDTxt.setBounds(230,200,150,30);
+        String busIDQuery ="select busID from Bus where Availability='Active'";
+        try
+        {
+            PreparedStatement psmt=conn.prepareStatement(busIDQuery);
+            ResultSet rs=psmt.executeQuery();
+            while(rs.next())
+            {
+                String busID =Integer.toString(rs.getInt("BusID"));
+                busStatList.add(busID);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        String[] busState = busStatList.toArray(new String[0]);
+
+        JComboBox busIDCombobox =new JComboBox<>(busState);
+        busIDCombobox.setBounds(230,150,150,35);
+        //busIDCombobox.setBackground(Color.orange);
+
 
         JLabel driverIDLabel =new JLabel();
         driverIDLabel.setText("Driver ID:");
-        driverIDLabel.setBounds(70,250,220,30);
+        driverIDLabel.setBounds(70,200,220,30);
         driverIDLabel.setFont(new Font("Arial",Font.BOLD,20));
         driverIDLabel.setForeground(Color.orange);
 
-        JTextField driverIDTxt =new JTextField();
-        driverIDTxt.setBounds(230,250,150,30);
+        ArrayList<String> driverIDStatList = new ArrayList<>();
+        String driverIDQuery ="select driverID from Driver where AccountStatus='Active'";
+        try
+        {
+            PreparedStatement psmt=conn.prepareStatement(driverIDQuery);
+            ResultSet rs=psmt.executeQuery();
+            while(rs.next())
+            {
+                String driverID =Integer.toString(rs.getInt("DriverID"));
+                driverIDStatList.add(driverID);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String[] driverState = driverIDStatList.toArray(new String[0]);
+        JComboBox driverIDCombobox =new JComboBox<>(driverState);
+        driverIDCombobox.setBounds(230,200,150,35);
+        //driverIDCombobox.setBackground(Color.orange);
+
+        JLabel priceIDLabel =new JLabel();
+        priceIDLabel.setText("Price ID:");
+        priceIDLabel.setBounds(70,250,220,30);
+        priceIDLabel.setFont(new Font("Arial",Font.BOLD,20));
+        priceIDLabel.setForeground(Color.orange);
+
+        ArrayList<String> priceIDStatList = new ArrayList<>();
+        String priceIDQuery ="select priceID from Price";
+        try
+        {
+            PreparedStatement psmt=conn.prepareStatement(priceIDQuery);
+            ResultSet rs=psmt.executeQuery();
+            while(rs.next())
+            {
+                String priceID =Integer.toString(rs.getInt("PriceID"));
+                priceIDStatList.add(priceID);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String[] priceIDState = priceIDStatList.toArray(new String[0]);
+        JComboBox priceIDCombobox =new JComboBox<>(priceIDState);
+        priceIDCombobox.setBounds(230,250,150,35);
+        //priceIDCombobox.setBackground(Color.orange);
+
 
         JLabel dateLabel =new JLabel();
         dateLabel.setText("Date:");
@@ -446,54 +578,68 @@ public class AddBookingPage extends JFrame{
         yearTxt.setBounds(350,300,40,30);
 
 
-        JLabel timeLabel =new JLabel();
-        timeLabel.setText("Time:");
-        timeLabel.setBounds(70,370,220,30);
-        timeLabel.setFont(new Font("Arial",Font.BOLD,20));
-        timeLabel.setForeground(Color.orange);
-
-        JLabel hourLabel =new JLabel("(Hour)");
-        hourLabel.setBounds(230,395,50,30);
-        hourLabel.setForeground(Color.orange);
-        hourLabel.setFont(new Font("Arial",Font.BOLD,11));
-
-        JTextField hourTxt =new JTextField();
-        hourTxt.setBounds(230,370,40,30);
-
-        JLabel minuteLabel =new JLabel("(Minute)");
-        minuteLabel.setBounds(290,395,50,30);
-        minuteLabel.setForeground(Color.orange);
-        minuteLabel.setFont(new Font("Arial",Font.BOLD,11));
-
-        JTextField minuteTxt =new JTextField();
-        minuteTxt.setBounds(290,370,40,30);
-
         JButton addButton=new JButton("Add");
-        addButton.setBounds(150,450,100,40);
+        addButton.setBounds(150,390,100,40);
         addButton.setBackground(Color.cyan);
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                String date=dayTxt.getText()+"-"+monTxt.getText()+"-"+yearTxt.getText();
-                String time=hourTxt.getText()+":"+minuteTxt.getText();
+                int id,maxVal=0;
+                String date=yearTxt.getText()+"-"+monTxt.getText()+"-"+dayTxt.getText();
+                String busID=(String)busIDCombobox.getSelectedItem();
+                String routeID=(String)routeIDCombobox.getSelectedItem();
+                String driverID=(String)driverIDCombobox.getSelectedItem();
+                String priceID=(String)priceIDCombobox.getSelectedItem();
 
-                String[] row={bookIDTxt.getText(),routeIDTxt.getText(),"","","","","","","","","",busIDTxt.getText(),
-                "","","","","","","","","",driverIDTxt.getText(),"","","","",date,time};
+                String insertQuery="insert into Booking(RouteID,BusID,DriverID,PriceID,Date,BookingStatus)" +
+                        "values(?,?,?,?,?,?)";
+                try
+                {
+                    PreparedStatement psmt=conn.prepareStatement(insertQuery);
+                    psmt.setInt(1,Integer.parseInt(routeID));
+                    psmt.setInt(2,Integer.parseInt(busID));
+                    psmt.setInt(3,Integer.parseInt(driverID));
+                    psmt.setInt(4,Integer.parseInt(priceID));
+                    psmt.setString(5,date);
+                    psmt.setString(6,"Active");
+                    psmt.executeUpdate();
+
+                    String query="Select bookID from Booking ";
+                    PreparedStatement pst=conn.prepareStatement(query);
+                    ResultSet rs=pst.executeQuery();
+                    while(rs.next())
+                    {
+                        id=rs.getInt(1);
+                        if(id>maxVal){
+                            maxVal=id;
+                        }
+
+                    }
+                }
+                catch (SQLException ex)
+                {
+                    throw new RuntimeException(ex);
+                }
+
+
+                String[] row={Integer.toString(maxVal),routeID,busID,driverID,priceID,date,"Active"};
                 tableModel.addRow(row);
                 addDialog.dispose();
             }
         });
 
         addDialog.add(addRecLabel);
-        addDialog.add(bookIDLabel);
-        addDialog.add(bookIDTxt);
         addDialog.add(busIDLabel);
-        addDialog.add(busIDTxt);
         addDialog.add(routeIDLabel);
-        addDialog.add(routeIDTxt);
+        addDialog.add(routeIDCombobox);
+
         addDialog.add(driverIDLabel);
-        addDialog.add(driverIDTxt);
+        addDialog.add(driverIDCombobox);
+        addDialog.add(priceIDLabel);
+        addDialog.add(priceIDCombobox);
+
+        addDialog.add(busIDCombobox);
 
         addDialog.add(dateLabel);
         addDialog.add(dayTxt);
@@ -502,12 +648,6 @@ public class AddBookingPage extends JFrame{
         addDialog.add(monTxt);
         addDialog.add(yearLabel);
         addDialog.add(yearTxt);
-
-        addDialog.add(timeLabel);
-        addDialog.add(hourLabel);
-        addDialog.add(hourTxt);
-        addDialog.add(minuteLabel);
-        addDialog.add(minuteTxt);
         addDialog.add(addButton);
 
         addDialog.setResizable(false);
@@ -527,15 +667,15 @@ public class AddBookingPage extends JFrame{
 
         JLabel addRecLabel=new JLabel();
         addRecLabel.setText("Remove Record");
-        addRecLabel.setFont(new Font("Arial",Font.BOLD,22));
+        addRecLabel.setFont(new Font("Arial",Font.BOLD,25));
         addRecLabel.setForeground(Color.orange);
         addRecLabel.setBounds(100, 30,240,30);
 
 
         JLabel bookIDLabel =new JLabel();
         bookIDLabel.setText("Book ID:");
-        bookIDLabel.setBounds(10,100,180,30);
-        bookIDLabel.setFont(new Font("Arial",Font.BOLD,17));
+        bookIDLabel.setBounds(50,100,180,30);
+        bookIDLabel.setFont(new Font("Arial",Font.BOLD,22));
         bookIDLabel.setForeground(Color.orange);
 
         JTextField bookIDTxt =new JTextField();
@@ -554,7 +694,19 @@ public class AddBookingPage extends JFrame{
                 for (int i = 0; i < tableModel.getRowCount(); i++)
                 {
                     if (tableModel.getValueAt(i, 0).equals(IDVal))
-                    { // Checking Reg number at index 4 & Bus ID at index 0
+                    {
+                        String delQuery="delete from Booking where BookID=?";
+                        try
+                        {
+                            PreparedStatement pst=conn.prepareStatement(delQuery);
+                            pst.setString(1,IDVal);
+                            pst.executeUpdate();
+                        }
+                        catch (SQLException ex)
+                        {
+                            throw new RuntimeException(ex);
+                        }
+
                         tableModel.removeRow(i);
                         found = true;
                         break;
@@ -592,7 +744,7 @@ public class AddBookingPage extends JFrame{
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(null);
         inputPanel.setBackground(Color.darkGray);
-        inputPanel.setPreferredSize(new Dimension(480, 680));
+        inputPanel.setPreferredSize(new Dimension(480, 700));
 
         JLabel editRecLabel =new JLabel();
         editRecLabel.setText("Edit Record");
@@ -620,124 +772,202 @@ public class AddBookingPage extends JFrame{
         JCheckBox busIDCheckBox =new JCheckBox("Bus ID");
         busIDCheckBox.setForeground(Color.orange);
         busIDCheckBox.setBackground(Color.darkGray);
-        busIDCheckBox.setBounds(150,200,80,30);
+        busIDCheckBox.setBounds(130,200,80,30);
         busIDCheckBox.setVisible(false);
 
         JCheckBox driverIDCheckBox =new JCheckBox("Driver ID");
         driverIDCheckBox.setForeground(Color.orange);
         driverIDCheckBox.setBackground(Color.darkGray);
-        driverIDCheckBox.setBounds(250,200,80,30);
+        driverIDCheckBox.setBounds(230,200,80,30);
         driverIDCheckBox.setVisible(false);
+
+
+        JCheckBox priceIDCheckBox =new JCheckBox("Price ID");
+        priceIDCheckBox.setForeground(Color.orange);
+        priceIDCheckBox.setBackground(Color.darkGray);
+        priceIDCheckBox.setBounds(330,200,70,30);
+        priceIDCheckBox.setVisible(false);
 
         JCheckBox dateCheckBox =new JCheckBox("Date");
         dateCheckBox.setForeground(Color.orange);
         dateCheckBox.setBackground(Color.darkGray);
-        dateCheckBox.setBounds(350,200,60,30);
+        dateCheckBox.setBounds(30,240,60,30);
         dateCheckBox.setVisible(false);
 
-        JCheckBox timeCheckBox =new JCheckBox("Time");
-        timeCheckBox.setForeground(Color.orange);
-        timeCheckBox.setBackground(Color.darkGray);
-        timeCheckBox.setBounds(30,250,60,30);
-        timeCheckBox.setVisible(false);
+        JCheckBox bookingStatusCheckBox =new JCheckBox("Booking Status");
+        bookingStatusCheckBox.setForeground(Color.orange);
+        bookingStatusCheckBox.setBackground(Color.darkGray);
+        bookingStatusCheckBox.setBounds(130,240,120,30);
+        bookingStatusCheckBox.setVisible(false);
+
 
         JLabel routeIDLabel =new JLabel();
         routeIDLabel.setText("Route ID:");
-        routeIDLabel.setBounds(70,300,220,30);
+        routeIDLabel.setBounds(60,300,220,30);
         routeIDLabel.setFont(new Font("Arial",Font.BOLD,20));
         routeIDLabel.setForeground(Color.orange);
         routeIDLabel.setVisible(false);
 
-        JTextField routeIDTxt =new JTextField();
-        routeIDTxt.setBounds(230,300,150,30);
-        routeIDTxt.setVisible(false);
+        ArrayList<String> routeStatList = new ArrayList<>();
+        String routeIDQuery ="select RouteID from Route";
+        try
+        {
+            PreparedStatement rspst=conn.prepareStatement(routeIDQuery);
+            ResultSet rs=rspst.executeQuery();
+            while(rs.next())
+            {
+                String routeID=Integer.toString(rs.getInt("RouteID"));
+                routeStatList.add(routeID);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String[] routeState = routeStatList.toArray(new String[0]);
+
+        JComboBox routeIDCombobox =new JComboBox<>(routeState);
+        routeIDCombobox.setBounds(230,300,150,35);
+        //routeIDCombobox.setBackground(Color.orange);
+        routeIDCombobox.setVisible(false);
+
 
         JLabel busIDLabel =new JLabel();
         busIDLabel.setText("Bus ID:");
-        busIDLabel.setBounds(70,350,220,30);
+        busIDLabel.setBounds(60,350,220,30);
         busIDLabel.setFont(new Font("Arial",Font.BOLD,20));
         busIDLabel.setForeground(Color.orange);
         busIDLabel.setVisible(false);
 
-        JTextField busIDTxt =new JTextField();
-        busIDTxt.setBounds(230,350,150,30);
-        busIDTxt.setVisible(false);
+        ArrayList<String> busStatList = new ArrayList<>();
+
+        String busIDquery ="select busID from Bus where Availability='Active'";
+        try
+        {
+            PreparedStatement psmt=conn.prepareStatement(busIDquery);
+            ResultSet rs=psmt.executeQuery();
+            while(rs.next())
+            {
+                String busID =Integer.toString(rs.getInt("BusID"));
+                busStatList.add(busID);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        String[] busState = busStatList.toArray(new String[0]);
+
+        JComboBox busIDCombobox =new JComboBox<>(busState);
+        busIDCombobox.setBounds(230,350,150,35);
+        //busIDCombobox.setBackground(//Color.orange);
+        busIDCombobox.setVisible(false);
 
         JLabel driverIDLabel =new JLabel();
         driverIDLabel.setText("Driver ID:");
-        driverIDLabel.setBounds(70,400,220,30);
+        driverIDLabel.setBounds(60,400,220,30);
         driverIDLabel.setFont(new Font("Arial",Font.BOLD,20));
         driverIDLabel.setForeground(Color.orange);
         driverIDLabel.setVisible(false);
 
-        JTextField driverIDTxt =new JTextField();
-        driverIDTxt.setBounds(230,400,150,30);
-        driverIDTxt.setVisible(false);
+        ArrayList<String> driverIDStatList = new ArrayList<>();
+        String driverIDQuery ="select driverID from Driver where AccountStatus='Active'";
+        try
+        {
+            PreparedStatement psmt=conn.prepareStatement(driverIDQuery);
+            ResultSet rs=psmt.executeQuery();
+            while(rs.next())
+            {
+                String driverID =Integer.toString(rs.getInt("DriverID"));
+                driverIDStatList.add(driverID);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String[] driverState = driverIDStatList.toArray(new String[0]);
+        JComboBox driverIDCombobox =new JComboBox<>(driverState);
+        driverIDCombobox.setBounds(230,400,150,35);
+        //driverIDCombobox.setBackground(Color.orange);
+        driverIDCombobox.setVisible(false);
+
+        JLabel priceIDLabel =new JLabel();
+        priceIDLabel.setText("Price ID:");
+        priceIDLabel.setBounds(60,450,220,30);
+        priceIDLabel.setFont(new Font("Arial",Font.BOLD,20));
+        priceIDLabel.setForeground(Color.orange);
+        priceIDLabel.setVisible(false);
+
+        ArrayList<String> priceIDStatList = new ArrayList<>();
+        String priceIDQuery ="select priceID from Price";
+        try
+        {
+            PreparedStatement psmt=conn.prepareStatement(priceIDQuery);
+            ResultSet rs=psmt.executeQuery();
+            while(rs.next())
+            {
+                String priceID =Integer.toString(rs.getInt("PriceID"));
+                priceIDStatList.add(priceID);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String[] priceIDState = priceIDStatList.toArray(new String[0]);
+        JComboBox priceIDCombobox =new JComboBox<>(priceIDState);
+        priceIDCombobox.setBounds(230,450,150,35);
+        //priceIDCombobox.setBackground(Color.orange);
+        priceIDCombobox.setVisible(false);
 
         JLabel dateLabel =new JLabel();
         dateLabel.setText("Date:");
-        dateLabel.setBounds(70,450,220,30);
+        dateLabel.setBounds(60,500,220,30);
         dateLabel.setFont(new Font("Arial",Font.BOLD,20));
         dateLabel.setForeground(Color.orange);
         dateLabel.setVisible(false);
 
         JLabel dayLabel =new JLabel("(Day)");
-        dayLabel.setBounds(230,480,50,30);
+        dayLabel.setBounds(230,530,50,30);
         dayLabel.setForeground(Color.orange);
         dayLabel.setFont(new Font("Arial",Font.BOLD,11));
         dayLabel.setVisible(false);
 
         JTextField dayTxt =new JTextField();
-        dayTxt.setBounds(230,450,40,30);
+        dayTxt.setBounds(230,500,40,30);
         dayTxt.setVisible(false);
 
         JLabel monLabel =new JLabel("(Month)");
-        monLabel.setBounds(290,480,50,30);
+        monLabel.setBounds(290,530,50,30);
         monLabel.setForeground(Color.orange);
         monLabel.setFont(new Font("Arial",Font.BOLD,11));
         monLabel.setVisible(false);
 
         JTextField monTxt =new JTextField();
-        monTxt.setBounds(290,450,40,30);
+        monTxt.setBounds(290,500,40,30);
         monTxt.setVisible(false);
 
         JLabel yearLabel =new JLabel("(Year)");
-        yearLabel.setBounds(350,480,50,30);
+        yearLabel.setBounds(350,530,50,30);
         yearLabel.setForeground(Color.orange);
         yearLabel.setFont(new Font("Arial",Font.BOLD,11));
         yearLabel.setVisible(false);
 
         JTextField yearTxt =new JTextField();
-        yearTxt.setBounds(350,450,40,30);
+        yearTxt.setBounds(350,500,40,30);
         yearTxt.setVisible(false);
 
-        JLabel timeLabel =new JLabel();
-        timeLabel.setText("Time:");
-        timeLabel.setBounds(70,530,220,30);
-        timeLabel.setFont(new Font("Arial",Font.BOLD,20));
-        timeLabel.setForeground(Color.orange);
-        timeLabel.setVisible(false);
+        JLabel bookingStatusLabel =new JLabel();
+        bookingStatusLabel.setText("Booking Status:");
+        bookingStatusLabel.setBounds(60,580,220,30);
+        bookingStatusLabel.setFont(new Font("Arial",Font.BOLD,20));
+        bookingStatusLabel.setForeground(Color.orange);
+        bookingStatusLabel.setVisible(false);
 
-        JLabel hourLabel =new JLabel("(Hour)");
-        hourLabel.setBounds(230,555,50,30);
-        hourLabel.setForeground(Color.orange);
-        hourLabel.setFont(new Font("Arial",Font.BOLD,11));
-        hourLabel.setVisible(false);
+        String[] stat={"-","Active","Not Active"};
 
-        JTextField hourTxt =new JTextField();
-        hourTxt.setBounds(230,530,40,30);
-        hourTxt.setVisible(false);
-
-        JLabel minuteLabel =new JLabel("(Minute)");
-        minuteLabel.setBounds(290,555,50,30);
-        minuteLabel.setForeground(Color.orange);
-        minuteLabel.setFont(new Font("Arial",Font.BOLD,11));
-        minuteLabel.setVisible(false);
-
-        JTextField minuteTxt =new JTextField();
-        minuteTxt.setBounds(290,530,40,30);
-        minuteTxt.setVisible(false);
-
+        JComboBox bookingStatusCombobox =new JComboBox<>(stat);
+        bookingStatusCombobox.setBounds(230,580,150,35);
+        //bookingStatusCombobox.setBackground(Color.orange);
+        bookingStatusCombobox.setVisible(false);
 
         JButton searchButton=new JButton("Search");
         searchButton.setBounds(170,150,100,30);
@@ -755,7 +985,8 @@ public class AddBookingPage extends JFrame{
                         busIDCheckBox.setVisible(true);
                         driverIDCheckBox.setVisible(true);
                         dateCheckBox.setVisible(true);
-                        timeCheckBox.setVisible(true);
+                        bookingStatusCheckBox.setVisible(true);
+                        priceIDCheckBox.setVisible(true);
                         found = true;
                         break;
                     }
@@ -769,14 +1000,14 @@ public class AddBookingPage extends JFrame{
         });
 
         JButton editButton=new JButton("Edit");
-        editButton.setBounds(130,610,100,30);
+        editButton.setBounds(130,650,100,30);
         editButton.setBackground(Color.cyan);
+        editButton.setVisible(false);
         editButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                String date=dayTxt.getText()+"-"+monTxt.getText()+"-"+yearTxt.getText();
-                String time=hourTxt.getText()+":"+minuteTxt.getText();
+                String date=yearTxt.getText()+"-"+monTxt.getText()+"-"+dayTxt.getText();
 
                 String val= bookIDTxt.getText();
                 for (int i = 0; i < tableModel.getRowCount(); i++)
@@ -787,29 +1018,114 @@ public class AddBookingPage extends JFrame{
 
                         if(routeIDCheckBox.isSelected())
                         {
-                            recTable.setValueAt(routeIDTxt.getText(),i,1);
+                            String routeID=(String)routeIDCombobox.getSelectedItem();
+                            recTable.setValueAt(routeID,i,1);
+                            String updateQuery="update Booking set RouteID=? where BookID=?";
+                            try
+                            {
+                                PreparedStatement pst=conn.prepareStatement(updateQuery);
+                                pst.setInt(1,Integer.parseInt(routeID));
+                                pst.setInt(2,Integer.parseInt(bookIDTxt.getText()));
+                                pst.executeUpdate();
+
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
 
                         }
                         if (busIDCheckBox.isSelected())
                         {
-                            recTable.setValueAt(busIDTxt.getText(),i,11);
+                            String busID=(String)busIDCombobox.getSelectedItem();
+                            recTable.setValueAt(busID,i,2);
+                            String updateQuery="update Booking set BusID=? where BookID=?";
+                            try
+                            {
+                                PreparedStatement pst=conn.prepareStatement(updateQuery);
+                                pst.setInt(1,Integer.parseInt(busID));
+                                pst.setInt(2,Integer.parseInt(bookIDTxt.getText()));
+                                pst.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
 
                         }
                         if(driverIDCheckBox.isSelected())
                         {
-                            recTable.setValueAt(driverIDTxt.getText(),i,21);
+                            String driverID=(String)driverIDCombobox.getSelectedItem();
+                            recTable.setValueAt(driverID,i,3);
+
+                            String updateQuery="update Booking set DriverID=? where BookID=?";
+                            try
+                            {
+                                PreparedStatement pst=conn.prepareStatement(updateQuery);
+                                pst.setInt(1,Integer.parseInt(driverID));
+                                pst.setInt(2,Integer.parseInt(bookIDTxt.getText()));
+                                pst.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
+
+                        }
+                        if(priceIDCheckBox.isSelected())
+                        {
+                            String priceID=(String)priceIDCombobox.getSelectedItem();
+                            recTable.setValueAt(priceID,i,4);
+                            String updateQuery="update Booking set PriceID=? where BookID=?";
+                            try
+                            {
+                                PreparedStatement pst=conn.prepareStatement(updateQuery);
+                                pst.setInt(1,Integer.parseInt(priceID));
+                                pst.setInt(2,Integer.parseInt(bookIDTxt.getText()));
+                                pst.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
+
 
                         }
                         if(dateCheckBox.isSelected())
                         {
-                            recTable.setValueAt(date,i,26);
+                            recTable.setValueAt(date,i,5);
+                            String updateQuery="update Booking set Date=? where BookID=?";
+                            try
+                            {
+                                PreparedStatement pst=conn.prepareStatement(updateQuery);
+                                pst.setString(1,date);
+                                pst.setInt(2,Integer.parseInt(bookIDTxt.getText()));
+                                pst.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
 
                         }
-                        if(timeCheckBox.isSelected())
+                        if(bookingStatusCheckBox.isSelected())
                         {
-                            recTable.setValueAt(time,i,27);
-                        }
+                            String status=(String)bookingStatusCombobox.getSelectedItem();
+                            recTable.setValueAt(status,i,6);
+                            String updateQuery="update Booking set BookingStatus=? where BookID=?";
+                            try {
+                                PreparedStatement pst= conn.prepareStatement(updateQuery);
+                                pst.setString(1,status);
+                                pst.setInt(2,Integer.parseInt(bookIDTxt.getText()));
+                                pst.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
 
+
+                        }
                         editDialog.dispose();
                         break;
                     }
@@ -823,11 +1139,13 @@ public class AddBookingPage extends JFrame{
                 if(routeIDCheckBox.isSelected())
                 {
                     routeIDLabel.setVisible(true);
-                    routeIDTxt.setVisible(true);
+                    routeIDCombobox.setVisible(true);
+                    editButton.setVisible(true);
                 }
                 else {
                     routeIDLabel.setVisible(false);
-                    routeIDTxt.setVisible(false);
+                    routeIDCombobox.setVisible(false);
+                    editButton.setVisible(false);
                 }
             }
         });
@@ -838,11 +1156,13 @@ public class AddBookingPage extends JFrame{
                 if (busIDCheckBox.isSelected())
                 {
                     busIDLabel.setVisible(true);
-                    busIDTxt.setVisible(true);
+                    busIDCombobox.setVisible(true);
+                    editButton.setVisible(true);
                 }
                 else {
                     busIDLabel.setVisible(false);
-                    busIDTxt.setVisible(false);
+                    busIDCombobox.setVisible(false);
+                    editButton.setVisible(false);
                 }
             }
         });
@@ -853,11 +1173,13 @@ public class AddBookingPage extends JFrame{
                 if (driverIDCheckBox.isSelected())
                 {
                     driverIDLabel.setVisible(true);
-                    driverIDTxt.setVisible(true);
+                    driverIDCombobox.setVisible(true);
+                    editButton.setVisible(true);
                 }
                 else {
                     driverIDLabel.setVisible(false);
-                    driverIDTxt.setVisible(false);
+                    driverIDCombobox.setVisible(false);
+                    editButton.setVisible(false);
                 }
             }
         });
@@ -874,6 +1196,7 @@ public class AddBookingPage extends JFrame{
                     monTxt.setVisible(true);
                     yearLabel.setVisible(true);
                     yearTxt.setVisible(true);
+                    editButton.setVisible(true);
                 }
                 else {
                     dateLabel.setVisible(false);
@@ -883,28 +1206,43 @@ public class AddBookingPage extends JFrame{
                     monTxt.setVisible(false);
                     yearLabel.setVisible(false);
                     yearTxt.setVisible(false);
+                    editButton.setVisible(false);
                 }
             }
         });
 
-        timeCheckBox.addActionListener(new ActionListener() {
+        priceIDCheckBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(timeCheckBox.isSelected())
+                if(priceIDCheckBox.isSelected())
                 {
-                    timeLabel.setVisible(true);
-                    hourLabel.setVisible(true);
-                    hourTxt.setVisible(true);
-                    minuteLabel.setVisible(true);
-                    minuteTxt.setVisible(true);
+                    priceIDLabel.setVisible(true);
+                    priceIDCombobox.setVisible(true);
+                    editButton.setVisible(true);
                 }
                 else
                 {
-                    timeLabel.setVisible(false);
-                    hourLabel.setVisible(false);
-                    hourTxt.setVisible(false);
-                    minuteLabel.setVisible(false);
-                    minuteTxt.setVisible(false);
+                    priceIDLabel.setVisible(false);
+                    priceIDCombobox.setVisible(false);
+                    editButton.setVisible(false);
+                }
+            }
+        });
+
+        bookingStatusCheckBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(bookingStatusCheckBox.isSelected())
+                {
+                    bookingStatusLabel.setVisible(true);
+                    bookingStatusCombobox.setVisible(true);
+                    editButton.setVisible(true);
+                }
+                else
+                {
+                    bookingStatusLabel.setVisible(false);
+                    bookingStatusCombobox.setVisible(false);
+                    editButton.setVisible(false);
                 }
             }
         });
@@ -917,13 +1255,17 @@ public class AddBookingPage extends JFrame{
         inputPanel.add(busIDCheckBox);
         inputPanel.add(driverIDCheckBox);
         inputPanel.add(dateCheckBox);
-        inputPanel.add(timeCheckBox);
+        inputPanel.add(bookingStatusCheckBox);
+        inputPanel.add(priceIDCheckBox);
+
         inputPanel.add(routeIDLabel);
-        inputPanel.add(routeIDTxt);
+        inputPanel.add(routeIDCombobox);
         inputPanel.add(busIDLabel);
-        inputPanel.add(busIDTxt);
+        inputPanel.add(busIDCombobox);
         inputPanel.add(driverIDLabel);
-        inputPanel.add(driverIDTxt);
+        inputPanel.add(driverIDCombobox);
+        inputPanel.add(priceIDLabel);
+        inputPanel.add(priceIDCombobox);
         inputPanel.add(dateLabel);
         inputPanel.add(dayLabel);
         inputPanel.add(dayTxt);
@@ -931,11 +1273,8 @@ public class AddBookingPage extends JFrame{
         inputPanel.add(monTxt);
         inputPanel.add(yearLabel);
         inputPanel.add(yearTxt);
-        inputPanel.add(timeLabel);
-        inputPanel.add(hourLabel);
-        inputPanel.add(hourTxt);
-        inputPanel.add(minuteLabel);
-        inputPanel.add(minuteTxt);
+        inputPanel.add(bookingStatusLabel);
+        inputPanel.add(bookingStatusCombobox);
         inputPanel.add(editButton);
 
 

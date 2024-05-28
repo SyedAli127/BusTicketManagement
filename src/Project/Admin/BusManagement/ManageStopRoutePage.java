@@ -238,8 +238,8 @@ public class ManageStopRoutePage extends JFrame {
 
         JLabel stopRouteIDSearchLabel =new JLabel();
         stopRouteIDSearchLabel.setText(" StopRoute ID:");
-        stopRouteIDSearchLabel.setBounds(250,80,180,50);
-        stopRouteIDSearchLabel.setFont(new Font("Arial",Font.BOLD,18));
+        stopRouteIDSearchLabel.setBounds(220,80,180,50);
+        stopRouteIDSearchLabel.setFont(new Font("Arial",Font.BOLD,20));
         stopRouteIDSearchLabel.setForeground(Color.orange);
 
         JTextField stopRouteIDSearchTxt =new JTextField();
@@ -256,40 +256,40 @@ public class ManageStopRoutePage extends JFrame {
             {
                 String srID=stopRouteIDSearchTxt.getText();
                 boolean found=false;
+                String query="Select * from StopRoute where StopRouteID=?";
+                try
+                {
+                    PreparedStatement pst=connection.prepareStatement(query);
+                    pst.setInt(1,Integer.parseInt(srID));
+                    ResultSet rs=pst.executeQuery();
+                    while (rs.next())
+                    {
+                        tableModel.setRowCount(0);
 
-                        String query="Select * from StopRouteTimeDummy where StopRouteID=?";
-                        try {
-                            PreparedStatement pst=connection.prepareStatement(query);
-                            pst.setInt(1,Integer.parseInt(srID));
-                            ResultSet rs=pst.executeQuery();
-                            while (rs.next())
-                            {
-                                tableModel.setRowCount(0);
+                        int stopRID=rs.getInt("StopRouteID");
+                        String s1T=rs.getString("Stop1Time");
+                        String s2T=rs.getString("Stop2Time");
+                        String s3T=rs.getString("Stop3Time");
+                        String s4T=rs.getString("Stop4Time");
+                        String s5T=rs.getString("Stop5Time");
+                        int s1km=rs.getInt("Stop1KM");
+                        int s2km=rs.getInt("Stop2KM");
+                        int s3km=rs.getInt("Stop3KM");
+                        int s4km=rs.getInt("Stop4KM");
+                        int s5km=rs.getInt("Stop5KM");
 
-                                int stopRID=rs.getInt("StopRouteID");
-                                String s1T=rs.getString("Stop1Time");
-                                String s2T=rs.getString("Stop2Time");
-                                String s3T=rs.getString("Stop3Time");
-                                String s4T=rs.getString("Stop4Time");
-                                String s5T=rs.getString("Stop5Time");
-                                int s1km=rs.getInt("Stop1KM");
-                                int s2km=rs.getInt("Stop2KM");
-                                int s3km=rs.getInt("Stop3KM");
-                                int s4km=rs.getInt("Stop4KM");
-                                int s5km=rs.getInt("Stop5KM");
+                        String [] row={Integer.toString(stopRID),s1T,s2T,s3T,s4T,s5T,Integer.toString(s1km),Integer.toString(s2km),
+                                Integer.toString(s3km),Integer.toString(s4km),Integer.toString(s5km)};
+                        tableModel.addRow(row);
+                        found = true;
 
-                                String [] row={Integer.toString(stopRID),s1T,s2T,s3T,s4T,s5T,Integer.toString(s1km),Integer.toString(s2km),
-                                        Integer.toString(s3km),Integer.toString(s4km),Integer.toString(s5km)};
-                                tableModel.addRow(row);
-                                found = true;
+                    }
 
-                            }
-
-                        }
-                        catch (SQLException ex)
-                        {
-                            throw new RuntimeException(ex);
-                        }
+                }
+                catch (SQLException ex)
+                {
+                    throw new RuntimeException(ex);
+                }
 
                 if (!found) {
                     JOptionPane.showMessageDialog(null, "Record with StopRoute ID " +srID+ " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
@@ -300,7 +300,7 @@ public class ManageStopRoutePage extends JFrame {
 
         JButton addButton =new JButton();
         addButton.setText("+ Add");
-        addButton.setBounds(250,160,80,30);
+        addButton.setBounds(250,160,90,30);
         addButton.setBackground(Color.GREEN);
         addButton.addActionListener(new ActionListener()
         {
@@ -313,7 +313,7 @@ public class ManageStopRoutePage extends JFrame {
 
         JButton removeButton =new JButton();
         removeButton.setText("- Remove");
-        removeButton.setBounds(340,160,90,30);
+        removeButton.setBounds(350,160,90,30);
         removeButton.setBackground(Color.RED);
         removeButton.addActionListener(new ActionListener()
         {
@@ -329,7 +329,7 @@ public class ManageStopRoutePage extends JFrame {
 
         JButton editButton =new JButton();
         editButton.setText("Edit");
-        editButton.setBounds(440,160,90,30);
+        editButton.setBounds(450,160,90,30);
         editButton.setBackground(Color.PINK);
         editButton.addActionListener(new ActionListener()
         {
@@ -362,7 +362,7 @@ public class ManageStopRoutePage extends JFrame {
         recTable.getColumnModel().getColumn(9).setPreferredWidth(100);
         recTable.getColumnModel().getColumn(10).setPreferredWidth(100);
 
-        String query="Select * from StopRouteTimeDummy";
+        String query="Select * from StopRoute";
         try
         {
             PreparedStatement psmt=connection.prepareStatement(query);
@@ -834,7 +834,7 @@ public class ManageStopRoutePage extends JFrame {
                 String stop4Time=stop4TimeHrTxt.getText()+":"+ stop4TimeMinTxt.getText();
                 String stop5Time=stop5TimeHrTxt.getText()+":"+ stop5TimeMinTxt.getText();
 
-                String insertQuery="insert into StopRouteTimeDummy(Stop1Time,Stop2Time,Stop3Time,Stop4Time,Stop5Time,Stop1KM,Stop2KM,Stop3KM,Stop4KM,Stop5KM) " +
+                String insertQuery="insert into StopRoute(Stop1Time,Stop2Time,Stop3Time,Stop4Time,Stop5Time,Stop1KM,Stop2KM,Stop3KM,Stop4KM,Stop5KM) " +
                         "values (?,?,?,?,?,?,?,?,?,?)";
                 try {
                     PreparedStatement psmt=connection.prepareStatement(insertQuery);
@@ -919,7 +919,7 @@ public class ManageStopRoutePage extends JFrame {
 
                     psmt.executeUpdate();
 
-                    String query="Select StopRouteID from StopRouteTimeDummy ";
+                    String query="Select StopRouteID from StopRoute ";
                     PreparedStatement pst=connection.prepareStatement(query);
                     ResultSet rs=pst.executeQuery();
                     while(rs.next())
@@ -1030,7 +1030,7 @@ public class ManageStopRoutePage extends JFrame {
                 {
                     if (tableModel.getValueAt(i, 0).equals(IDVal))
                     {
-                        String delQuery="DELETE FROM StopRouteTimeDummy WHERE StopRouteID=?";
+                        String delQuery="DELETE FROM StopRoute WHERE StopRouteID=?";
                         try
                         {
                             PreparedStatement preparedStatement=connection.prepareStatement(delQuery);
@@ -1364,7 +1364,7 @@ public class ManageStopRoutePage extends JFrame {
                         {
                             recTable.setValueAt(stop1Time,i,1);
 
-                            String updateQuery="update StopRouteTimeDummy set Stop1Time=? where StopRouteID=?";
+                            String updateQuery="update StopRoute set Stop1Time=? where StopRouteID=?";
                             try {
                                 PreparedStatement pst=connection.prepareStatement(updateQuery);
                                 pst.setString(1,stop1Time);
@@ -1379,7 +1379,7 @@ public class ManageStopRoutePage extends JFrame {
                         if(stop1KMCheckbox.isSelected())
                         {
                             recTable.setValueAt(stop1KMTxt.getText(),i,6);
-                            String updateQuery="update StopRouteTimeDummy set Stop1KM=? where StopRouteID=?";
+                            String updateQuery="update StopRoute set Stop1KM=? where StopRouteID=?";
                             try {
                                 PreparedStatement pst=connection.prepareStatement(updateQuery);
                                 pst.setInt(1,Integer.parseInt(stop1KMTxt.getText()));
@@ -1396,7 +1396,7 @@ public class ManageStopRoutePage extends JFrame {
                         {
                             recTable.setValueAt(stop2Time,i,2);
 
-                            String updateQuery="update StopRouteTimeDummy set Stop2Time=? where StopRouteID=?";
+                            String updateQuery="update StopRoute set Stop2Time=? where StopRouteID=?";
                             try {
                                 PreparedStatement pst=connection.prepareStatement(updateQuery);
                                 pst.setString(1,stop2Time);
@@ -1411,7 +1411,7 @@ public class ManageStopRoutePage extends JFrame {
                         if(stop2KMCheckbox.isSelected())
                         {
                             recTable.setValueAt(stop2KMTxt.getText(),i,7);
-                            String updateQuery="update StopRouteTimeDummy set Stop2KM=? where StopRouteID=?";
+                            String updateQuery="update StopRoute set Stop2KM=? where StopRouteID=?";
                             try {
                                 PreparedStatement pst=connection.prepareStatement(updateQuery);
                                 pst.setInt(1,Integer.parseInt(stop2KMTxt.getText()));
@@ -1427,7 +1427,7 @@ public class ManageStopRoutePage extends JFrame {
                         {
                             recTable.setValueAt(stop3Time,i,3);
 
-                            String updateQuery="update StopRouteTimeDummy set Stop3Time=? where StopRouteID=?";
+                            String updateQuery="update StopRoute set Stop3Time=? where StopRouteID=?";
                             try {
                                 PreparedStatement pst=connection.prepareStatement(updateQuery);
                                 pst.setString(1,stop3Time);
@@ -1442,7 +1442,7 @@ public class ManageStopRoutePage extends JFrame {
                         if(stop3KMCheckbox.isSelected())
                         {
                             recTable.setValueAt(stop3KMTxt.getText(),i,8);
-                            String updateQuery="update StopRouteTimeDummy set Stop3KM=? where StopRouteID=?";
+                            String updateQuery="update StopRoute set Stop3KM=? where StopRouteID=?";
                             try {
                                 PreparedStatement pst=connection.prepareStatement(updateQuery);
                                 pst.setInt(1,Integer.parseInt(stop3KMTxt.getText()));
@@ -1458,7 +1458,7 @@ public class ManageStopRoutePage extends JFrame {
                         {
                             recTable.setValueAt(stop4Time,i,4);
 
-                            String updateQuery="update StopRouteTimeDummy set Stop4Time=? where StopRouteID=?";
+                            String updateQuery="update StopRoute set Stop4Time=? where StopRouteID=?";
                             try {
                                 PreparedStatement pst=connection.prepareStatement(updateQuery);
                                 pst.setString(1,stop4Time);
@@ -1473,7 +1473,7 @@ public class ManageStopRoutePage extends JFrame {
                         if(stop4KMCheckbox.isSelected())
                         {
                             recTable.setValueAt(stop4KMTxt.getText(),i,9);
-                            String updateQuery="update StopRouteTimeDummy set Stop4KM=? where StopRouteID=?";
+                            String updateQuery="update StopRoute set Stop4KM=? where StopRouteID=?";
                             try {
                                 PreparedStatement pst=connection.prepareStatement(updateQuery);
                                 pst.setInt(1,Integer.parseInt(stop4KMTxt.getText()));
@@ -1489,7 +1489,7 @@ public class ManageStopRoutePage extends JFrame {
                         {
                             recTable.setValueAt(stop5Time,i,5);
 
-                            String updateQuery="update StopRouteTimeDummy set Stop5Time=? where StopRouteID=?";
+                            String updateQuery="update StopRoute set Stop5Time=? where StopRouteID=?";
                             try {
                                 PreparedStatement pst=connection.prepareStatement(updateQuery);
                                 pst.setString(1,stop5Time);
@@ -1504,7 +1504,7 @@ public class ManageStopRoutePage extends JFrame {
                         if(stop5KMCheckbox.isSelected())
                         {
                             recTable.setValueAt(stop5KMTxt.getText(),i,10);
-                            String updateQuery="update StopRouteTimeDummy set Stop5KM=? where StopRouteID=?";
+                            String updateQuery="update StopRoute set Stop5KM=? where StopRouteID=?";
                             try {
                                 PreparedStatement pst=connection.prepareStatement(updateQuery);
                                 pst.setInt(1,Integer.parseInt(stop5KMTxt.getText()));

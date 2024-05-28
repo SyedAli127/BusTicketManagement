@@ -8,6 +8,7 @@ import Project.Admin.BusManagement.ManageRoutePage;
 import Project.Admin.BusManagement.ManageStopRoutePage;
 import Project.Admin.GenerateReportPage;
 import Project.Admin.ViewFeedbackPage;
+import Project.Database;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -18,11 +19,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class ManageDriverPage extends JFrame {
 
     DefaultTableModel tableModel;
     JTable recTable;
+    Connection connection= Database.setConnection();
 
     public ManageDriverPage() {
 
@@ -235,14 +241,14 @@ public class ManageDriverPage extends JFrame {
 
 
 
-        JLabel cnicSearchLabel =new JLabel();
-        cnicSearchLabel.setText("CNIC No:");
-        cnicSearchLabel.setBounds(240,80,150,50);
-        cnicSearchLabel.setFont(new Font("Arial",Font.BOLD,15));
-        cnicSearchLabel.setForeground(Color.orange);
+        JLabel driverIDSearchLabel =new JLabel();
+        driverIDSearchLabel.setText("Driver ID:");
+        driverIDSearchLabel.setBounds(240,80,150,50);
+        driverIDSearchLabel.setFont(new Font("Arial",Font.BOLD,15));
+        driverIDSearchLabel.setForeground(Color.orange);
 
-        JTextField cnicSearchTxt =new JTextField();
-        cnicSearchTxt.setBounds(400,90,150,30);
+        JTextField driverIDSearchTxt =new JTextField();
+        driverIDSearchTxt.setBounds(400,90,150,30);
 
         JButton searchButton=new JButton("Search");
         searchButton.setBounds(570,90,100,30);
@@ -251,35 +257,48 @@ public class ManageDriverPage extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                String val= cnicSearchTxt.getText();
+                String val= driverIDSearchTxt.getText();
                 boolean found=false;
-                for (int i = 0; i < tableModel.getRowCount(); i++)
-                {
-                    if (tableModel.getValueAt(i, 4).equals(val))
+                String query="select * from Driver where DriverID=?";
+                try {
+                    PreparedStatement psmt=connection.prepareStatement(query);
+                    psmt.setInt(1,Integer.parseInt(val));
+                    ResultSet rs=psmt.executeQuery();
+                    while (rs.next())
                     {
-                        String message = "Driver ID: " + recTable.getValueAt(i, 0) + "\n" +
-                                "Driver Name: " + recTable.getValueAt(i, 1) + "\n" +
-                                "License Number: " + recTable.getValueAt(i, 2) + "\n" +
-                                "Contact Number: " + recTable.getValueAt(i, 3) + "\n" +
-                                "CNIC No.: " + recTable.getValueAt(i, 4) + "\n" +
-                                "Address: " + recTable.getValueAt(i, 5)+"\n"+
-                                "Staus: "+recTable.getValueAt(i,6);
-                        JOptionPane.showMessageDialog(null, message, "Record Found", JOptionPane.INFORMATION_MESSAGE);
+                        int driverID=rs.getInt("DriverID");
+                        int managerID=rs.getInt("ManagerID");
+                        String firstName=rs.getString("FirstName");
+                        String lastName=rs.getString("LastName");
+                        String dob=rs.getString("DOB");
+                        String cnicNumber=rs.getString("CNIC Number");
+                        String contactNumber=rs.getString("Contact Number");
+                        String licenseNumber=rs.getString("License Number");
+                        String address=rs.getString("Address");
+                        int salary=rs.getInt("Salary");
+                        String accountStatus=rs.getString("Account Status");
+
+                        String [] row={Integer.toString(driverID),Integer.toString(managerID),firstName,lastName,dob,cnicNumber,
+                                contactNumber,licenseNumber,address,Integer.toString(salary),accountStatus};
+                        tableModel.addRow(row);
 
                         found = true;
-                        break;
                     }
+                }
+                catch (SQLException ex)
+                {
+                    throw new RuntimeException(ex);
                 }
                 if (!found)
                 {
-                    JOptionPane.showMessageDialog(null, "Record with CNIC number " + val + " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Record with Driver ID " + val + " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
                 }
             }
         });
 
         JButton addButton =new JButton();
         addButton.setText("+ Add");
-        addButton.setBounds(240,150,80,30);
+        addButton.setBounds(250,150,90,30);
         addButton.setBackground(Color.GREEN);
         addButton.addActionListener(new ActionListener() {
             @Override
@@ -290,7 +309,7 @@ public class ManageDriverPage extends JFrame {
 
         JButton removeButton =new JButton();
         removeButton.setText("- Remove");
-        removeButton.setBounds(330,150,90,30);
+        removeButton.setBounds(350,150,90,30);
         removeButton.setBackground(Color.RED);
         removeButton.addActionListener(new ActionListener() {
             @Override
@@ -302,7 +321,7 @@ public class ManageDriverPage extends JFrame {
 
         JButton editButton =new JButton();
         editButton.setText("Edit");
-        editButton.setBounds(430,150,90,30);
+        editButton.setBounds(450,150,90,30);
         editButton.setBackground(Color.PINK);
         editButton.addActionListener(new ActionListener() {
             @Override
@@ -310,22 +329,65 @@ public class ManageDriverPage extends JFrame {
                 editRecord();
             }
         });
+        JPanel tabPanel=new JPanel();
+        tabPanel.setBounds(250,190,590,350);
+        tabPanel.setLayout(null);
 
-        String[][] data = {
-                {"123","25-05-21","Karachi","Lahore","26-5-21","2","600","Lahore","26-5-21","2","600"},
-                {"123","25-05-21","Karachi","Lahore","26-5-21","2","600","Lahore","26-5-21","2","600"},
-                {"123","25-05-21","Karachi","Lahore","26-5-21","2","600","Lahore","26-5-21","2","600"}
-        };
-        String[] columnNames = {"DriverID","Name","License Number","Contact Number","CNIC No.","Address","Status"};
+        String[] columnNames = {"Driver ID","Manager ID","First Name","Last Name","Date of Birth","CNIC Number","Contact Number",
+                "License Number","Address","Salary","Account Status"};
 
-        tableModel=new DefaultTableModel(data,columnNames);
+
+        tableModel=new DefaultTableModel(columnNames,0);
         recTable=new JTable(tableModel);
-        recTable.setBounds(240,190,600,300);
+        recTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        recTable.getColumnModel().getColumn(0).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(1).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(2).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(3).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(4).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(5).setPreferredWidth(130);
+        recTable.getColumnModel().getColumn(6).setPreferredWidth(130);
+        recTable.getColumnModel().getColumn(7).setPreferredWidth(130);
+        recTable.getColumnModel().getColumn(8).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(9).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(10).setPreferredWidth(100);
+
+        String query="Select * from Driver";
+        try {
+            PreparedStatement psmt=connection.prepareStatement(query);
+            ResultSet rs=psmt.executeQuery();
+            while (rs.next()) {
+                int driverID = rs.getInt("DriverID");
+                int managerID = rs.getInt("ManagerID");
+                String firstName = rs.getString("FirstName");
+                String lastName = rs.getString("LastName");
+                String dob = rs.getString("DOB");
+                String cnicNumber = rs.getString("CNIC");
+                String contactNumber = rs.getString("ContactNo");
+                String licenseNumber = rs.getString("LicenseNo");
+                String address = rs.getString("Address");
+                int salary = rs.getInt("Salary");
+                String accountStatus = rs.getString("AccountStatus");
+
+                String[] row = {Integer.toString(driverID), Integer.toString(managerID), firstName, lastName, dob, cnicNumber,
+                        contactNumber, licenseNumber, address, Integer.toString(salary), accountStatus};
+                tableModel.addRow(row);
+            }
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeException(e);
+        }
+
+
         JScrollPane scrollPane=new JScrollPane(recTable);
-        scrollPane.setBounds(240,190,600,300);
+        scrollPane.setBounds(1,1,590,350);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        tabPanel.add(scrollPane);
 
 
-        setTitle("Manage Driver");
+        setTitle("Manage Driver Page");
         setLayout(null);
         setSize(900, 650);
         getContentPane().setBackground(Color.darkGray);
@@ -337,13 +399,13 @@ public class ManageDriverPage extends JFrame {
 
         add(label);
         add(menuPanel);
-        add(cnicSearchLabel);
-        add(cnicSearchTxt);
+        add(driverIDSearchLabel);
+        add(driverIDSearchTxt);
         add(searchButton);
         add(addButton);
         add(removeButton);
         add(editButton);
-        add(scrollPane);
+        add(tabPanel);
 
     }
 
@@ -354,6 +416,16 @@ public class ManageDriverPage extends JFrame {
         addDialog.getContentPane().setBackground(Color.darkGray);
         addDialog.setSize(500, 500);
         addDialog.setLocationRelativeTo(null);
+        addDialog.setResizable(false);
+
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setBounds(0, 0, 485, 480);
+
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(null);
+        inputPanel.setBackground(Color.darkGray);
+        inputPanel.setPreferredSize(new Dimension(480, 650));
 
         JLabel addRecLabel=new JLabel();
         addRecLabel.setText("Add New Record");
@@ -361,88 +433,198 @@ public class ManageDriverPage extends JFrame {
         addRecLabel.setForeground(Color.orange);
         addRecLabel.setBounds(150, 30,240,30);
 
-        JLabel driverIDLabel =new JLabel();
-        driverIDLabel.setText("Driver ID:");
-        driverIDLabel.setBounds(10,100,150,30);
-        driverIDLabel.setFont(new Font("Arial",Font.BOLD,20));
-        driverIDLabel.setForeground(Color.orange);
+        JLabel managerIDLabel =new JLabel();
+        managerIDLabel.setText("Manager ID:");
+        managerIDLabel.setBounds(10,100,150,30);
+        managerIDLabel.setFont(new Font("Arial",Font.BOLD,20));
+        managerIDLabel.setForeground(Color.orange);
 
-        JTextField driverIDTxt =new JTextField();
-        driverIDTxt.setBounds(200,100,150,30);
+        JTextField managerIDTxt =new JTextField();
+        managerIDTxt.setBounds(200,100,150,30);
 
 
-        JLabel driverNameLabel =new JLabel();
-        driverNameLabel.setText("Driver Name:");
-        driverNameLabel.setBounds(10,150,180,30);
-        driverNameLabel.setFont(new Font("Arial",Font.BOLD,20));
-        driverNameLabel.setForeground(Color.orange);
+        JLabel firstNameLabel =new JLabel();
+        firstNameLabel.setText("First Name:");
+        firstNameLabel.setBounds(10,150,180,30);
+        firstNameLabel.setFont(new Font("Arial",Font.BOLD,20));
+        firstNameLabel.setForeground(Color.orange);
 
-        JTextField driverNameTxt =new JTextField();
-        driverNameTxt.setBounds(200,150,150,30);
+        JTextField firstNameTxt =new JTextField();
+        firstNameTxt.setBounds(200,150,150,30);
 
-        JLabel licenseNoLabel=new JLabel();
-        licenseNoLabel.setText("License Number:");
-        licenseNoLabel.setBounds(10,200,180,30);
-        licenseNoLabel.setFont(new Font("Arial",Font.BOLD,20));
-        licenseNoLabel.setForeground(Color.orange);
+        JLabel lastNameLabel =new JLabel();
+        lastNameLabel.setText("Last Name:");
+        lastNameLabel.setBounds(10,200,180,30);
+        lastNameLabel.setFont(new Font("Arial",Font.BOLD,20));
+        lastNameLabel.setForeground(Color.orange);
 
-        JTextField licenseNoTxt=new JTextField();
-        licenseNoTxt.setBounds(200,200,150,30);
+        JTextField lastNameTxt =new JTextField();
+        lastNameTxt.setBounds(200,200,150,30);
 
-        JLabel contactNoLabel=new JLabel();
-        contactNoLabel.setText("Contact Number:");
-        contactNoLabel.setBounds(10,250,180,30);
-        contactNoLabel.setFont(new Font("Arial",Font.BOLD,20));
-        contactNoLabel.setForeground(Color.orange);
+        JLabel dobLabel =new JLabel();
+        dobLabel.setText("Date of Birth:");
+        dobLabel.setBounds(10,250,180,30);
+        dobLabel.setFont(new Font("Arial",Font.BOLD,20));
+        dobLabel.setForeground(Color.orange);
 
-        JTextField contactNoTxt=new JTextField();
-        contactNoTxt.setBounds(200,250,150,30);
+        JLabel dobDayLabel =new JLabel("(Day)");
+        dobDayLabel.setBounds(200,285,50,30);
+        dobDayLabel.setForeground(Color.orange);
+        dobDayLabel.setFont(new Font("Arial",Font.BOLD,11));
+
+        JTextField dobDayTxt =new JTextField();
+        dobDayTxt.setBounds(200,250,40,30);
+
+        JLabel dobMonLabel =new JLabel("(Month)");
+        dobMonLabel.setBounds(250,285,50,30);
+        dobMonLabel.setForeground(Color.orange);
+        dobMonLabel.setFont(new Font("Arial",Font.BOLD,11));
+
+        JTextField dobMonTxt =new JTextField();
+        dobMonTxt.setBounds(250,250,40,30);
+
+        JLabel dobYearLabel =new JLabel("(Year)");
+        dobYearLabel.setBounds(300,285,50,30);
+        dobYearLabel.setForeground(Color.orange);
+        dobYearLabel.setFont(new Font("Arial",Font.BOLD,11));
+
+        JTextField dobYearTxt =new JTextField();
+        dobYearTxt.setBounds(300,250,40,30);
 
         JLabel cnicNoLabel=new JLabel();
         cnicNoLabel.setText("CNIC Number:");
-        cnicNoLabel.setBounds(10,300,180,30);
+        cnicNoLabel.setBounds(10,340,180,30);
         cnicNoLabel.setFont(new Font("Arial",Font.BOLD,20));
         cnicNoLabel.setForeground(Color.orange);
 
         JTextField cnicNoTxt=new JTextField();
-        cnicNoTxt.setBounds(200,300,150,30);
+        cnicNoTxt.setBounds(200,340,150,30);
 
-        JLabel addressLabel=new JLabel();
+        JLabel contactNoLabel =new JLabel();
+        contactNoLabel.setText("Contact Number:");
+        contactNoLabel.setBounds(10,390,180,30);
+        contactNoLabel.setFont(new Font("Arial",Font.BOLD,20));
+        contactNoLabel.setForeground(Color.orange);
+
+        JTextField contactNoTxt=new JTextField();
+        contactNoTxt.setBounds(200,390,150,30);
+
+        JLabel licenseNoLabel =new JLabel();
+        licenseNoLabel.setText("License Number:");
+        licenseNoLabel.setBounds(10,440,180,30);
+        licenseNoLabel.setFont(new Font("Arial",Font.BOLD,20));
+        licenseNoLabel.setForeground(Color.orange);
+
+        JTextField licenseNoTxt =new JTextField();
+        licenseNoTxt.setBounds(200,440,150,30);
+
+        JLabel addressLabel =new JLabel();
         addressLabel.setText("Address:");
-        addressLabel.setBounds(10,350,180,30);
+        addressLabel.setBounds(10,490,180,30);
         addressLabel.setFont(new Font("Arial",Font.BOLD,20));
         addressLabel.setForeground(Color.orange);
 
-        JTextField addressTxt=new JTextField();
-        addressTxt.setBounds(200,350,150,30);
+        JTextField addressTxt =new JTextField();
+        addressTxt.setBounds(200,490,150,30);
+
+        JLabel salaryLabel =new JLabel();
+        salaryLabel.setText("Salary:");
+        salaryLabel.setBounds(10,540,180,30);
+        salaryLabel.setFont(new Font("Arial",Font.BOLD,20));
+        salaryLabel.setForeground(Color.orange);
+
+        JTextField salaryTxt =new JTextField();
+        salaryTxt.setBounds(200,540,150,30);
 
         JButton addButton=new JButton("Add");
-        addButton.setBounds(150,400,100,40);
+        addButton.setBounds(150,600,100,40);
         addButton.setBackground(Color.cyan);
-        addButton.addActionListener(new ActionListener() {
+        addButton.addActionListener(new ActionListener()
+        {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                String[] row={driverIDTxt.getText(), driverNameTxt.getText(),licenseNoTxt.getText(),contactNoTxt.getText(),cnicNoTxt.getText(),addressTxt.getText(),"Active"};
+            public void actionPerformed(ActionEvent e)
+            {
+                int id,maxVal=0;
+                String dob=dobYearTxt.getText()+"-"+dobMonTxt.getText()+"-"+dobDayTxt.getText();
+                String insertQuery="insert into Driver(ManagerID,FirstName,LastName,DOB,CNIC,ContactNo,LicenseNo,Address,Salary,AccountStatus) " +
+                        "values(?,?,?,?,?,?,?,?,?,?)";
+                try
+                {
+                    PreparedStatement psmt=connection.prepareStatement(insertQuery);
+                    if(managerIDTxt.getText().equals(""))
+                    {
+                        psmt.setString(1,null);
+
+                    }
+                    else {
+                        psmt.setInt(1,Integer.parseInt(managerIDTxt.getText()));
+                    }
+                    psmt.setString(2,firstNameTxt.getText());
+                    psmt.setString(3,lastNameTxt.getText());
+                    psmt.setString(4,dob);
+                    psmt.setString(5,cnicNoTxt.getText());
+                    psmt.setString(6,contactNoTxt.getText());
+                    psmt.setString(7,licenseNoTxt.getText());
+                    psmt.setString(8,addressTxt.getText());
+                    psmt.setInt(9,Integer.parseInt(salaryTxt.getText()));
+                    psmt.setString(10,"Active");
+                    psmt.executeUpdate();
+
+                    String query="Select DriverID from Driver ";
+                    PreparedStatement pst=connection.prepareStatement(query);
+                    ResultSet rs=pst.executeQuery();
+                    while(rs.next())
+                    {
+                        id=rs.getInt(1);
+                        if(id>maxVal){
+                            maxVal=id;
+                        }
+
+                    }
+
+                }
+                catch (SQLException ex)
+                {
+                    throw new RuntimeException(ex);
+                }
+
+                String[] row={Integer.toString(maxVal),managerIDTxt.getText(),firstNameTxt.getText(), lastNameTxt.getText(),
+                        dob,cnicNoTxt.getText(),contactNoTxt.getText(),
+                        licenseNoTxt.getText(),addressTxt.getText(),salaryTxt.getText(),"Active"};
 
                 tableModel.addRow(row);
                 addDialog.dispose();
             }
         });
 
-        addDialog.add(addRecLabel);
-        addDialog.add(driverIDLabel);
-        addDialog.add(driverIDTxt);
-        addDialog.add(driverNameLabel);
-        addDialog.add(driverNameTxt);
-        addDialog.add(licenseNoLabel);
-        addDialog.add(licenseNoTxt);
-        addDialog.add(contactNoLabel);
-        addDialog.add(contactNoTxt);
-        addDialog.add(cnicNoLabel);
-        addDialog.add(cnicNoTxt);
-        addDialog.add(addressLabel);
-        addDialog.add(addressTxt);
-        addDialog.add(addButton);
+        inputPanel.add(addRecLabel);
+        inputPanel.add(managerIDLabel);
+        inputPanel.add(managerIDTxt);
+        inputPanel.add(firstNameLabel);
+        inputPanel.add(firstNameTxt);
+        inputPanel.add(lastNameLabel);
+        inputPanel.add(lastNameTxt);
+        inputPanel.add(dobLabel);
+        inputPanel.add(dobDayLabel);
+        inputPanel.add(dobDayTxt);
+        inputPanel.add(dobMonLabel);
+        inputPanel.add(dobMonTxt);
+        inputPanel.add(dobYearLabel);
+        inputPanel.add(dobYearTxt);
+        inputPanel.add(contactNoLabel);
+        inputPanel.add(contactNoTxt);
+        inputPanel.add(cnicNoLabel);
+        inputPanel.add(cnicNoTxt);
+        inputPanel.add(licenseNoLabel);
+        inputPanel.add(licenseNoTxt);
+        inputPanel.add(addressLabel);
+        inputPanel.add(addressTxt);
+        inputPanel.add(salaryLabel);
+        inputPanel.add(salaryTxt);
+        inputPanel.add(addButton);
+
+        scrollPane.setViewportView(inputPanel);
+        addDialog.getContentPane().add(scrollPane);
 
         addDialog.setVisible(true);
 
@@ -455,6 +637,7 @@ public class ManageDriverPage extends JFrame {
         removeDialog.getContentPane().setBackground(Color.darkGray);
         removeDialog.setSize(400, 350);
         removeDialog.setLocationRelativeTo(null);
+        removeDialog.setResizable(false);
 
 
         JLabel addRecLabel=new JLabel();
@@ -464,14 +647,14 @@ public class ManageDriverPage extends JFrame {
         addRecLabel.setBounds(100, 30,240,30);
 
 
-        JLabel cnicNoLabel=new JLabel();
-        cnicNoLabel.setText("CNIC Number:");
-        cnicNoLabel.setBounds(10,100,180,30);
-        cnicNoLabel.setFont(new Font("Arial",Font.BOLD,20));
-        cnicNoLabel.setForeground(Color.orange);
+        JLabel DriverIDLabel =new JLabel();
+        DriverIDLabel.setText("Driver ID:");
+        DriverIDLabel.setBounds(10,100,180,30);
+        DriverIDLabel.setFont(new Font("Arial",Font.BOLD,20));
+        DriverIDLabel.setForeground(Color.orange);
 
-        JTextField cnicNoTxt=new JTextField();
-        cnicNoTxt.setBounds(200,100,150,30);
+        JTextField driverIDTxt =new JTextField();
+        driverIDTxt.setBounds(200,100,150,30);
 
         JButton searchButton=new JButton("Search");
         searchButton.setBounds(130,150,100,30);
@@ -480,22 +663,33 @@ public class ManageDriverPage extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                String val=cnicNoTxt.getText();
+                String val= driverIDTxt.getText();
                 boolean found=false;
                 for (int i = 0; i < tableModel.getRowCount(); i++)
                 {
-                    if (tableModel.getValueAt(i, 4).equals(val))
-                    { // Checking CNIC number at index 4
+                    if (tableModel.getValueAt(i, 0).equals(val))
+                    {
+                        String delQuery="Delete from Driver where DriverID=?";
+                        try
+                        {
+                            PreparedStatement psmt=connection.prepareStatement(delQuery);
+                            psmt.setInt(1,Integer.parseInt(val));
+                            psmt.executeUpdate();
+                        }
+                        catch (SQLException ex)
+                        {
+                            throw new RuntimeException(ex);
+                        }
                         tableModel.removeRow(i);
                         found = true;
                         break;
                     }
                 }
                 if (!found) {
-                    JOptionPane.showMessageDialog(removeDialog, "Record with CNIC number " + val + " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(removeDialog, "Record with Driver ID " + val + " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
                 }
                 else {
-                    JOptionPane.showMessageDialog(removeDialog, "Record with CNIC number " + val + " removed successfully.", "Record Removed", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(removeDialog, "Record with Driver ID " + val + " removed successfully.", "Record Removed", JOptionPane.INFORMATION_MESSAGE);
                 }
             }
 
@@ -504,8 +698,8 @@ public class ManageDriverPage extends JFrame {
         });
 
         removeDialog.add(addRecLabel);
-        removeDialog.add(cnicNoLabel);
-        removeDialog.add(cnicNoTxt);
+        removeDialog.add(DriverIDLabel);
+        removeDialog.add(driverIDTxt);
         removeDialog.add(searchButton);
 
         removeDialog.setVisible(true);
@@ -520,21 +714,30 @@ public class ManageDriverPage extends JFrame {
         editDialog.setSize(500, 600);
         editDialog.setLocationRelativeTo(null);
 
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setBounds(0, 0, 485, 580);
+
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(null);
+        inputPanel.setBackground(Color.darkGray);
+        inputPanel.setPreferredSize(new Dimension(480, 610));
+
         JLabel editRecLabel =new JLabel();
         editRecLabel.setText("Edit Record");
         editRecLabel.setFont(new Font("Arial",Font.BOLD,22));
         editRecLabel.setForeground(Color.orange);
-        editRecLabel.setBounds(100, 30,240,30);
+        editRecLabel.setBounds(150, 30,240,30);
 
 
-        JLabel cnicNoLabel=new JLabel();
-        cnicNoLabel.setText("CNIC Number:");
-        cnicNoLabel.setBounds(10,100,180,30);
-        cnicNoLabel.setFont(new Font("Arial",Font.BOLD,20));
-        cnicNoLabel.setForeground(Color.orange);
+        JLabel driverIDLabel =new JLabel();
+        driverIDLabel.setText("Driver ID:");
+        driverIDLabel.setBounds(50,100,180,30);
+        driverIDLabel.setFont(new Font("Arial",Font.BOLD,20));
+        driverIDLabel.setForeground(Color.orange);
 
-        JTextField cnicNoTxt=new JTextField();
-        cnicNoTxt.setBounds(200,100,150,30);
+        JTextField driverIDTxt =new JTextField();
+        driverIDTxt.setBounds(200,100,150,30);
 
         JCheckBox licenseCheckbox =new JCheckBox("License Number");
         licenseCheckbox.setBackground( Color.darkGray);
@@ -552,54 +755,70 @@ public class ManageDriverPage extends JFrame {
         JCheckBox addressCheckbox =new JCheckBox("Address");
         addressCheckbox.setBackground( Color.darkGray);
         addressCheckbox.setForeground(Color.orange);
-        addressCheckbox.setBounds(295,200,90,30);
+        addressCheckbox.setBounds(300,200,90,30);
         addressCheckbox.setVisible(false);
 
+        JCheckBox salaryCheckbox =new JCheckBox("Salary");
+        salaryCheckbox.setBackground( Color.darkGray);
+        salaryCheckbox.setForeground(Color.orange);
+        salaryCheckbox.setBounds(40,235,90,30);
+        salaryCheckbox.setVisible(false);
 
-        JCheckBox statusCheckbox =new JCheckBox("Status");
+        JCheckBox statusCheckbox =new JCheckBox("Account Status");
         statusCheckbox.setBackground( Color.darkGray);
         statusCheckbox.setForeground(Color.orange);
-        statusCheckbox.setBounds(380,200,120,30);
+        statusCheckbox.setBounds(170,235,120,30);
         statusCheckbox.setVisible(false);
 
 
         JLabel licenseNoLabel=new JLabel();
         licenseNoLabel.setText("License Number:");
-        licenseNoLabel.setBounds(10,250,180,30);
+        licenseNoLabel.setBounds(10,290,180,30);
         licenseNoLabel.setFont(new Font("Arial",Font.BOLD,20));
         licenseNoLabel.setForeground(Color.orange);
         licenseNoLabel.setVisible(false);
 
         JTextField licenseNoTxt=new JTextField();
-        licenseNoTxt.setBounds(200,250,150,30);
+        licenseNoTxt.setBounds(200,290,150,30);
         licenseNoTxt.setVisible(false);
 
         JLabel contactNoLabel=new JLabel();
         contactNoLabel.setText("Contact Number:");
-        contactNoLabel.setBounds(10,300,180,30);
+        contactNoLabel.setBounds(10,340,180,30);
         contactNoLabel.setFont(new Font("Arial",Font.BOLD,20));
         contactNoLabel.setForeground(Color.orange);
         contactNoLabel.setVisible(false);
 
         JTextField contactNoTxt=new JTextField();
-        contactNoTxt.setBounds(200,300,150,30);
+        contactNoTxt.setBounds(200,340,150,30);
         contactNoTxt.setVisible(false);
 
 
         JLabel addressLabel=new JLabel();
         addressLabel.setText("Address:");
-        addressLabel.setBounds(10,350,180,30);
+        addressLabel.setBounds(10,390,180,30);
         addressLabel.setFont(new Font("Arial",Font.BOLD,20));
         addressLabel.setForeground(Color.orange);
         addressLabel.setVisible(false);
 
         JTextField addressTxt=new JTextField();
-        addressTxt.setBounds(200,350,150,30);
+        addressTxt.setBounds(200,390,150,30);
         addressTxt.setVisible(false);
+
+        JLabel salaryLabel=new JLabel();
+        salaryLabel.setText("Salary:");
+        salaryLabel.setBounds(10,440,180,30);
+        salaryLabel.setFont(new Font("Arial",Font.BOLD,20));
+        salaryLabel.setForeground(Color.orange);
+        salaryLabel.setVisible(false);
+
+        JTextField salaryTxt=new JTextField();
+        salaryTxt.setBounds(200,440,150,30);
+        salaryTxt.setVisible(false);
 
         JLabel statusLabel=new JLabel();
         statusLabel.setText("Select Status:");
-        statusLabel.setBounds(10,400,180,30);
+        statusLabel.setBounds(10,490,180,30);
         statusLabel.setFont(new Font("Arial",Font.BOLD,20));
         statusLabel.setForeground(Color.orange);
         statusLabel.setVisible(false);
@@ -607,7 +826,7 @@ public class ManageDriverPage extends JFrame {
         String[] stat={"-","Active","Not Active"};
 
         JComboBox statusCombobox=new JComboBox<>(stat);
-        statusCombobox.setBounds(200,400,150,35);
+        statusCombobox.setBounds(200,490,150,35);
         statusCombobox.setBackground(Color.orange);
         statusCombobox.setVisible(false);
 
@@ -619,15 +838,16 @@ public class ManageDriverPage extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                String val=cnicNoTxt.getText();
+                String val= driverIDTxt.getText();
                 boolean found=false;
                 for (int i = 0; i < tableModel.getRowCount(); i++)
                 {
-                    if (tableModel.getValueAt(i, 4).equals(val))
+                    if (tableModel.getValueAt(i, 0).equals(val))
                     {
                         addressCheckbox.setVisible(true);
                         licenseCheckbox.setVisible(true);
                         contactNoCheckbox.setVisible(true);
+                        salaryCheckbox.setVisible(true);
                         statusCheckbox.setVisible(true);
 
                         found = true;
@@ -636,14 +856,14 @@ public class ManageDriverPage extends JFrame {
                 }
                 if (!found)
                 {
-                    JOptionPane.showMessageDialog(editDialog, "Record with CNIC number " + val + " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(editDialog, "Record with Driver ID " + val + " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
                 }
             }
         });
 
 
         JButton editButton=new JButton("Edit");
-        editButton.setBounds(130,450,100,30);
+        editButton.setBounds(130,560,100,30);
         editButton.setBackground(Color.cyan);
         editButton.setVisible(false);
 
@@ -651,33 +871,98 @@ public class ManageDriverPage extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                String val=cnicNoTxt.getText();
+                String val= driverIDTxt.getText();
                 for (int i = 0; i < tableModel.getRowCount(); i++)
                 {
-                    if (tableModel.getValueAt(i, 4).equals(val))
+                    if (tableModel.getValueAt(i, 0).equals(val))
                     {
-                        String lic=licenseNoTxt.getText();
-                        String contact=contactNoTxt.getText();
-                        String add=addressTxt.getText();
-                        String status=(String)statusCombobox.getSelectedItem();
-                        if(addressCheckbox.isSelected())
-                        {
-                            recTable.setValueAt(add, i, 5); // Update Address
-
-
-                        }
                         if(contactNoCheckbox.isSelected())
                         {
-                            recTable.setValueAt(contact, i, 3); // Update Contact Number
+                            String contact=contactNoTxt.getText();
+                            recTable.setValueAt(contact, i, 6);
+                            String updateQuery="update Driver set ContactNo=? where driverID=? ";
+                            try
+                            {
+                                PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                pst.setString(1,contact);
+                                pst.setString(2,val);
+                                pst.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
                         }
                         if(licenseCheckbox.isSelected())
                         {
-                            recTable.setValueAt(lic, i, 2); // Update License Number
+                            String license=licenseNoTxt.getText();
+                            recTable.setValueAt(license, i, 7);
+                            String updateQuery="update Driver set LicenseNo=? where driverID=? ";
+                            try
+                            {
+                                PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                pst.setString(1,license);
+                                pst.setString(2,val);
+                                pst.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
+                        }
+                        if(addressCheckbox.isSelected())
+                        {
+                            String add=addressTxt.getText();
+                            recTable.setValueAt(add, i, 8);
+                            String updateQuery="update Driver set Address=? where driverID=? ";
+                            try
+                            {
+                                PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                pst.setString(1,add);
+                                pst.setString(2,val);
+                                pst.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
+                        }
+                        if(salaryCheckbox.isSelected())
+                        {
+                            String sal=salaryTxt.getText();
+                            recTable.setValueAt(sal, i, 9);
+                            String updateQuery="update Driver set Salary=? where driverID=? ";
+                            try {
+                                PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                pst.setInt(1,Integer.parseInt(sal));
+                                pst.setString(2,val);
+                                pst.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
+
+
                         }
                         if(statusCheckbox.isSelected())
                         {
-                            recTable.setValueAt(status, i, 6); // Update Status
+                            String status=(String)statusCombobox.getSelectedItem();
+                            recTable.setValueAt(status, i, 10);
+                            String updateQuery="update Driver set AccountStatus=? where driverID=?";
+                            try
+                            {
+                                PreparedStatement pst=connection.prepareStatement(updateQuery);
+                                pst.setString(1,status);
+                                pst.setString(2,val);
+                                pst.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
                         }
+
                         editDialog.dispose();
                         break;
                     }
@@ -760,24 +1045,47 @@ public class ManageDriverPage extends JFrame {
             }
         });
 
+        salaryCheckbox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(salaryCheckbox.isSelected())
+                {
+                    salaryLabel.setVisible(true);
+                    salaryTxt.setVisible(true);
+                    editButton.setVisible(true);
+                }
+                else{
+                    salaryLabel.setVisible(false);
+                    salaryTxt.setVisible(false);
+                    editButton.setVisible(false);
+                }
+            }
+        });
 
-        editDialog.add(editRecLabel);
-        editDialog.add(cnicNoLabel);
-        editDialog.add(cnicNoTxt);
-        editDialog.add(searchButton);
-        editDialog.add(addressCheckbox);
-        editDialog.add(licenseCheckbox);
-        editDialog.add(contactNoCheckbox);
-        editDialog.add(statusCheckbox);
-        editDialog.add(licenseNoLabel);
-        editDialog.add(licenseNoTxt);
-        editDialog.add(contactNoLabel);
-        editDialog.add(contactNoTxt);
-        editDialog.add(addressLabel);
-        editDialog.add(addressTxt);
-        editDialog.add(statusLabel);
-        editDialog.add(statusCombobox);
-        editDialog.add(editButton);
+
+        inputPanel.add(editRecLabel);
+        inputPanel.add(driverIDLabel);
+        inputPanel.add(driverIDTxt);
+        inputPanel.add(searchButton);
+        inputPanel.add(addressCheckbox);
+        inputPanel.add(licenseCheckbox);
+        inputPanel.add(contactNoCheckbox);
+        inputPanel.add(salaryCheckbox);
+        inputPanel.add(statusCheckbox);
+        inputPanel.add(licenseNoLabel);
+        inputPanel.add(licenseNoTxt);
+        inputPanel.add(contactNoLabel);
+        inputPanel.add(contactNoTxt);
+        inputPanel.add(addressLabel);
+        inputPanel.add(addressTxt);
+        inputPanel.add(salaryLabel);
+        inputPanel.add(salaryTxt);
+        inputPanel.add(statusLabel);
+        inputPanel.add(statusCombobox);
+        inputPanel.add(editButton);
+
+        scrollPane.setViewportView(inputPanel);
+        editDialog.getContentPane().add(scrollPane);
 
 
         editDialog.setResizable(false);

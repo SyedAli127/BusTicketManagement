@@ -10,16 +10,26 @@ import Project.Admin.UserMangement.ManageDriverPage;
 import Project.Admin.UserMangement.ManageManagerPage;
 import Project.Admin.UserMangement.ManageUserPage;
 import Project.Admin.ViewFeedbackPage;
+import Project.Database;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class ManageTaxPage extends JFrame {
-
+    DefaultTableModel tableModel;
+    JTable recTable;
+    Connection connection= Database.setConnection();
     public ManageTaxPage()
     {
         JLabel label=new JLabel();
@@ -229,49 +239,133 @@ public class ManageTaxPage extends JFrame {
         // Set the custom renderer to the JTree
         dashboardTree.setCellRenderer(renderer);
 
-        JLabel busIDSearchLabel =new JLabel();
-        busIDSearchLabel.setText(" Bus ID:");
-        busIDSearchLabel.setBounds(300,80,180,50);
-        busIDSearchLabel.setFont(new Font("Arial",Font.BOLD,15));
-        busIDSearchLabel.setForeground(Color.orange);
+        JLabel taxIDSearchLabel =new JLabel();
+        taxIDSearchLabel.setText(" Tax ID:");
+        taxIDSearchLabel.setBounds(300,80,180,50);
+        taxIDSearchLabel.setFont(new Font("Arial",Font.BOLD,20));
+        taxIDSearchLabel.setForeground(Color.orange);
 
-        JTextField busIDSearchTxt =new JTextField();
-        busIDSearchTxt.setBounds(390,90,150,30);
+        JTextField taxIDSearchTxt =new JTextField();
+        taxIDSearchTxt.setBounds(390,90,150,30);
 
 
         JButton searchButton=new JButton("Search");
         searchButton.setBounds(580,90,100,30);
         searchButton.setBackground(Color.cyan);
+        searchButton.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                int taxID =Integer.parseInt(taxIDSearchTxt.getText());
+                boolean found=false;
+                String query="select * from Tax where TaxID=?";
+                try
+                {
+                    PreparedStatement psmt=connection.prepareStatement(query);
+                    psmt.setInt(1, taxID);
+                    ResultSet rs=psmt.executeQuery();
+                    while (rs.next())
+                    {
+                        tableModel.setRowCount(0);
+                        int promoCodeID=rs.getInt("TaxID");
+                        String taxName=rs.getString("TaxName");
+                        Float taxPercentage=rs.getFloat("TaxPercentage");
+                        String taxDescription =rs.getString("TaxDescription");
+
+                        String [] row={Integer.toString(promoCodeID),taxName,Float.toString(taxPercentage), taxDescription};
+
+                        tableModel.addRow(row);
+                    }
+                }
+                catch (SQLException ex)
+                {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
 
         JButton addButton =new JButton();
         addButton.setText("+ Add");
-        addButton.setBounds(240,160,80,30);
+        addButton.setBounds(250,160,90,30);
         addButton.setBackground(Color.GREEN);
-
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addRecord();
+            }
+        });
         JButton removeButton =new JButton();
         removeButton.setText("- Remove");
-        removeButton.setBounds(330,160,90,30);
+        removeButton.setBounds(350,160,90,30);
         removeButton.setBackground(Color.RED);
+        removeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
 
+                removeRecord();
+            }
+        });
 
 
 
         JButton editButton =new JButton();
         editButton.setText("Edit");
-        editButton.setBounds(430,160,90,30);
+        editButton.setBounds(450,160,90,30);
         editButton.setBackground(Color.PINK);
+        editButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
 
-
+                editRecord();
+            }
+        });
 
         JPanel tabPanel=new JPanel();
         tabPanel.setBounds(250,210,580,350);
         tabPanel.setLayout(null);
 
-        String[] column={"Bus ID","Bus Company","Bus Name","Model No","Registration Number","Chassis Number","Economy Seats","Luxury Seats"
-                ,"First-Class Seats","Total Capacity","Economy Seat No.","Luxury Seat No.","First-Class Seat No.","ManagerID","Availability"};
+        String[] column={"Tax ID","Tax Name","Tax Percentage","Tax Description"};
+        tableModel=new DefaultTableModel(column,0);
+        recTable=new JTable(tableModel);
+        recTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        recTable.getColumnModel().getColumn(0).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(1).setPreferredWidth(120);
+        recTable.getColumnModel().getColumn(2).setPreferredWidth(120);
+        recTable.getColumnModel().getColumn(3).setPreferredWidth(237);
+
+        String query="select * from Tax";
+        try
+        {
+            PreparedStatement psmt=connection.prepareStatement(query);
+            ResultSet rs=psmt.executeQuery();
+            while (rs.next())
+            {
+                int promoCodeID=rs.getInt("TaxID");
+                String taxName=rs.getString("TaxName");
+                Float taxPercentage =rs.getFloat("TaxPercentage");
+                String remainTimeUsed=rs.getString("TaxDescription");
+
+                String [] row={Integer.toString(promoCodeID),taxName, Float.toString(taxPercentage),remainTimeUsed};
+
+                tableModel.addRow(row);
+            }
+        }
+        catch (SQLException ex)
+        {
+            throw new RuntimeException(ex);
+        }
 
 
-        setTitle("Manage Bus Page");
+
+        JScrollPane scrollPane=new JScrollPane(recTable);
+        scrollPane.setBounds(1,1,580,350);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        tabPanel.add(scrollPane);
+
+
+        setTitle("Manage Tax Page");
         setLayout(null);
         setSize(900, 650);
         getContentPane().setBackground(Color.darkGray);
@@ -283,8 +377,8 @@ public class ManageTaxPage extends JFrame {
 
         add(label);
         add(menuPanel);
-        add(busIDSearchLabel);
-        add(busIDSearchTxt);
+        add(taxIDSearchLabel);
+        add(taxIDSearchTxt);
         add(searchButton);
         add(addButton);
         add(removeButton);
@@ -292,6 +386,437 @@ public class ManageTaxPage extends JFrame {
         add(tabPanel);
     }
 
+
+    public void  addRecord()
+    {
+        JDialog addDialog = new JDialog(this, "Add New Record", true);
+        addDialog.setLayout(null);
+        addDialog.getContentPane().setBackground(Color.darkGray);
+        addDialog.setSize(500, 420);
+        addDialog.setLocationRelativeTo(null);
+
+        JLabel addRecLabel=new JLabel();
+        addRecLabel.setText("Add New Record");
+        addRecLabel.setFont(new Font("Arial",Font.BOLD,25));
+        addRecLabel.setForeground(Color.orange);
+        addRecLabel.setBounds(150, 30,240,30);
+
+
+        JLabel taxNameLabel =new JLabel();
+        taxNameLabel.setText("Tax Name:");
+        taxNameLabel.setBounds(10,100,220,30);
+        taxNameLabel.setFont(new Font("Arial",Font.BOLD,20));
+        taxNameLabel.setForeground(Color.orange);
+
+        JTextField taxNameTxt =new JTextField();
+        taxNameTxt.setBounds(230,100,150,30);
+
+        JLabel taxPercentageLabel =new JLabel();
+        taxPercentageLabel.setText("Tax Percentage:");
+        taxPercentageLabel.setBounds(10,150,220,30);
+        taxPercentageLabel.setFont(new Font("Arial",Font.BOLD,20));
+        taxPercentageLabel.setForeground(Color.orange);
+
+        JTextField taxPercentageTxt =new JTextField();
+        taxPercentageTxt.setBounds(230,150,150,30);
+
+        JLabel taxDescriptionLabel =new JLabel();
+        taxDescriptionLabel.setText("Tax Description:");
+        taxDescriptionLabel.setBounds(10,200,220,30);
+        taxDescriptionLabel.setFont(new Font("Arial",Font.BOLD,20));
+        taxDescriptionLabel.setForeground(Color.orange);
+
+        JTextField taxDescriptionTxt =new JTextField();
+        taxDescriptionTxt.setBounds(230,200,150,30);
+
+
+        JButton addButton=new JButton("Add");
+        addButton.setBounds(150,280,100,40);
+        addButton.setBackground(Color.cyan);
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int maxVal=0,prcID=0;
+
+
+                String insertQuery="insert into Tax(TaxName,TaxPercentage,TaxDescription) values(?,?,?)";
+                try
+                {
+                    PreparedStatement psmt =connection.prepareStatement(insertQuery);
+                    psmt.setString(1, taxNameTxt.getText());
+                    psmt.setFloat(2,Float.parseFloat(taxPercentageTxt.getText()));
+                    psmt.setString(3,taxDescriptionTxt.getText());
+                    psmt.executeUpdate();
+
+                    String query="Select TaxID from Tax ";
+                    PreparedStatement pst = connection.prepareStatement(query);
+                    ResultSet rs = pst.executeQuery();
+                    while(rs.next()) {
+
+                        prcID = rs.getInt(1);
+                        if (prcID > maxVal) {
+                            maxVal = prcID;
+
+                        }
+                    }
+                }
+                catch (SQLException ex)
+                {
+                    throw new RuntimeException(ex);
+                }
+
+                String[] row={ Integer.toString(maxVal), taxNameTxt.getText(), taxPercentageTxt.getText(),
+                        taxDescriptionTxt.getText()};
+                tableModel.addRow(row);
+                addDialog.dispose();
+
+            }
+        });
+
+        addDialog.add(addRecLabel);
+        addDialog.add(taxPercentageLabel);
+        addDialog.add(taxPercentageTxt);
+        addDialog.add(taxNameLabel);
+        addDialog.add(taxNameTxt);
+        addDialog.add(taxDescriptionLabel);
+        addDialog.add(taxDescriptionTxt);
+
+        addDialog.add(addButton);
+
+        addDialog.setResizable(false);
+        addDialog.setVisible(true);
+
+    }
+    public void  removeRecord()
+    {
+        JDialog removeDialog = new JDialog(this, "Remove Record", true);
+        removeDialog.setLayout(null);
+        removeDialog.getContentPane().setBackground(Color.darkGray);
+        removeDialog.setSize(400, 350);
+        removeDialog.setLocationRelativeTo(null);
+        removeDialog.setResizable(false);
+
+
+        JLabel addRecLabel=new JLabel();
+        addRecLabel.setText("Remove Record");
+        addRecLabel.setFont(new Font("Arial",Font.BOLD,25));
+        addRecLabel.setForeground(Color.orange);
+        addRecLabel.setBounds(100, 30,240,30);
+
+
+        JLabel taxIDLabel =new JLabel();
+        taxIDLabel.setText("Tax ID:");
+        taxIDLabel.setBounds(50,100,180,30);
+        taxIDLabel.setFont(new Font("Arial",Font.BOLD,22));
+        taxIDLabel.setForeground(Color.orange);
+
+        JTextField taxIDTxt =new JTextField();
+        taxIDTxt.setBounds(200,100,150,30);
+
+
+        JButton searchButton=new JButton("Search");
+        searchButton.setBounds(130,170,100,30);
+        searchButton.setBackground(Color.cyan);
+        searchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                String IDVal = taxIDTxt.getText();
+                boolean found=false;
+                for (int i = 0; i < tableModel.getRowCount(); i++)
+                {
+                    if (tableModel.getValueAt(i, 0).equals(IDVal))
+                    {
+                        String delQuery="delete  from Tax where TaxID=?";
+                        try
+                        {
+                            PreparedStatement preparedStatement=connection.prepareStatement(delQuery);
+                            preparedStatement.setInt(1,Integer.parseInt(IDVal));
+                            preparedStatement.executeUpdate();
+
+                        } catch (SQLException ex)
+                        {
+                            throw new RuntimeException(ex);
+                        }
+                        tableModel.removeRow(i);
+                        found = true;
+
+                        break;
+
+                    }
+                }
+                if (!found) {
+                    JOptionPane.showMessageDialog(removeDialog, "Record with Tax ID " + IDVal +" not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                }
+                else {
+                    JOptionPane.showMessageDialog(removeDialog, "Record with Tax ID " + IDVal +  " removed successfully.", "Record Removed", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+
+        });
+
+        removeDialog.add(addRecLabel);
+        removeDialog.add(taxIDLabel);
+        removeDialog.add(taxIDTxt);
+        removeDialog.add(searchButton);
+
+        removeDialog.setVisible(true);
+
+    }
+
+    public void  editRecord()
+    {
+        JDialog editDialog = new JDialog(this, "Edit Record", true);
+        editDialog.setLayout(null);
+        editDialog.getContentPane().setBackground(Color.darkGray);
+        editDialog.setSize(500, 530);
+        editDialog.setLocationRelativeTo(null);
+
+        JLabel editRecLabel =new JLabel();
+        editRecLabel.setText("Edit Record");
+        editRecLabel.setFont(new Font("Arial",Font.BOLD,22));
+        editRecLabel.setForeground(Color.orange);
+        editRecLabel.setBounds(150, 30,240,30);
+
+
+        JLabel taxIDLabel =new JLabel();
+        taxIDLabel.setText("Tax ID:");
+        taxIDLabel.setBounds(40,100,150,30);
+        taxIDLabel.setFont(new Font("Arial",Font.BOLD,20));
+        taxIDLabel.setForeground(Color.orange);
+
+        JTextField promoCodeIDTxt =new JTextField();
+        promoCodeIDTxt.setBounds(200,100,150,30);
+
+
+        JCheckBox taxNameCheckBox =new JCheckBox("Tax Name");
+        taxNameCheckBox.setForeground(Color.orange);
+        taxNameCheckBox.setBackground(Color.darkGray);
+        taxNameCheckBox.setBounds(30,200,90,30);
+        taxNameCheckBox.setVisible(false);
+
+        JCheckBox taxPercentageCheckBox =new JCheckBox("Tax Percentage");
+        taxPercentageCheckBox.setForeground(Color.orange);
+        taxPercentageCheckBox.setBackground(Color.darkGray);
+        taxPercentageCheckBox.setBounds(140,200,120,30);
+        taxPercentageCheckBox.setVisible(false);
+
+        JCheckBox taxDescriptionCheckBox =new JCheckBox("Tax Description");
+        taxDescriptionCheckBox.setForeground(Color.orange);
+        taxDescriptionCheckBox.setBackground(Color.darkGray);
+        taxDescriptionCheckBox.setBounds(280,200,150,30);
+        taxDescriptionCheckBox.setVisible(false);
+
+
+        JLabel taxNameLabel =new JLabel();
+        taxNameLabel.setText("Tax Name:");
+        taxNameLabel.setBounds(10,250,220,30);
+        taxNameLabel.setFont(new Font("Arial",Font.BOLD,20));
+        taxNameLabel.setForeground(Color.orange);
+        taxNameLabel.setVisible(false);
+
+        JTextField taxNameTxt =new JTextField();
+        taxNameTxt.setBounds(230,250,150,30);
+        taxNameTxt.setVisible(false);
+
+        JLabel taxPercentageLabel =new JLabel();
+        taxPercentageLabel.setText("Tax Percentage:");
+        taxPercentageLabel.setBounds(10,300,220,30);
+        taxPercentageLabel.setFont(new Font("Arial",Font.BOLD,20));
+        taxPercentageLabel.setForeground(Color.orange);
+        taxPercentageLabel.setVisible(false);
+
+        JTextField taxPercentageTxt =new JTextField();
+        taxPercentageTxt.setBounds(230,300,150,30);
+        taxPercentageTxt.setVisible(false);
+
+        JLabel taxDescriptionLabel =new JLabel();
+        taxDescriptionLabel.setText("Tax Description:");
+        taxDescriptionLabel.setBounds(10,350,220,30);
+        taxDescriptionLabel.setFont(new Font("Arial",Font.BOLD,20));
+        taxDescriptionLabel.setForeground(Color.orange);
+        taxDescriptionLabel.setVisible(false);
+
+        JTextField taxDescriptionTxt =new JTextField();
+        taxDescriptionTxt.setBounds(230,350,150,30);
+        taxDescriptionTxt.setVisible(false);
+
+
+        JButton searchButton=new JButton("Search");
+        searchButton.setBounds(170,150,100,30);
+        searchButton.setBackground(Color.cyan);
+        searchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String val= promoCodeIDTxt.getText();
+                boolean found=false;
+                for (int i = 0; i < tableModel.getRowCount(); i++)
+                {
+                    if (tableModel.getValueAt(i, 0).equals(val))
+                    {
+                        taxNameCheckBox.setVisible(true);
+                        taxPercentageCheckBox.setVisible(true);
+                        taxDescriptionCheckBox.setVisible(true);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    JOptionPane.showMessageDialog(editDialog, "Record with Tax ID " + val + " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                }
+
+            }
+        });
+
+        JButton editButton=new JButton("Edit");
+        editButton.setBounds(170,420,100,30);
+        editButton.setBackground(Color.cyan);
+        editButton.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                String val= promoCodeIDTxt.getText();
+                for (int i = 0; i < tableModel.getRowCount(); i++)
+                {
+                    if (tableModel.getValueAt(i, 0).equals(val))
+                    {
+                        if(taxNameCheckBox.isSelected())
+                        {
+                            recTable.setValueAt(taxNameTxt.getText(),i,1);
+                            String editQuery="Update Tax set TaxName=? where TaxID=?";
+                            try
+                            {
+                                PreparedStatement psmt=connection.prepareStatement(editQuery);
+                                psmt.setString(1, taxNameTxt.getText());
+                                psmt.setInt(2,Integer.parseInt(val));
+                                psmt.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
+
+                        }
+                        if (taxPercentageCheckBox.isSelected())
+                        {
+                            recTable.setValueAt(taxPercentageTxt.getText(),i,2);
+                            String editQuery="Update Tax set TaxPercentage=? where TaxID=?";
+                            try
+                            {
+                                PreparedStatement psmt=connection.prepareStatement(editQuery);
+                                psmt.setFloat(1,Float.parseFloat(taxPercentageTxt.getText()));
+                                psmt.setInt(2,Integer.parseInt(val));
+                                psmt.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
+
+
+                        }
+                        if(taxDescriptionCheckBox.isSelected())
+                        {
+                            recTable.setValueAt(taxDescriptionTxt.getText(),i,3);
+                            String editQuery="Update Tax set TaxDescription=? where TaxID=?";
+                            try
+                            {
+                                PreparedStatement psmt=connection.prepareStatement(editQuery);
+                                psmt.setString(1,taxDescriptionTxt.getText());
+                                psmt.setInt(2,Integer.parseInt(val));
+                                psmt.executeUpdate();
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
+
+                        }
+
+                        editDialog.dispose();
+                        break;
+                    }
+                }
+            }
+        });
+
+        taxNameCheckBox.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                if(taxNameCheckBox.isSelected())
+                {
+                    taxNameLabel.setVisible(true);
+                    taxNameTxt.setVisible(true);
+                }
+                else {
+                    taxNameLabel.setVisible(false);
+                    taxNameTxt.setVisible(false);
+                }
+            }
+        });
+
+        taxPercentageCheckBox.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                if (taxPercentageCheckBox.isSelected())
+                {
+                    taxPercentageLabel.setVisible(true);
+                    taxPercentageTxt.setVisible(true);
+                }
+                else {
+                    taxPercentageLabel.setVisible(false);
+                    taxPercentageTxt.setVisible(false);
+                }
+            }
+        });
+
+        taxDescriptionCheckBox.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                if (taxDescriptionCheckBox.isSelected())
+                {
+                    taxDescriptionLabel.setVisible(true);
+                    taxDescriptionTxt.setVisible(true);
+
+                }
+                else {
+                    taxDescriptionLabel.setVisible(false);
+                    taxDescriptionTxt.setVisible(false);
+                }
+            }
+        });
+
+
+
+        editDialog.add(editRecLabel);
+        editDialog.add(taxIDLabel);
+        editDialog.add(promoCodeIDTxt);
+        editDialog.add(searchButton);
+        editDialog.add(taxNameCheckBox);
+        editDialog.add(taxPercentageCheckBox);
+        editDialog.add(taxDescriptionCheckBox);
+        editDialog.add(taxNameLabel);
+        editDialog.add(taxNameTxt);
+        editDialog.add(taxPercentageLabel);
+        editDialog.add(taxPercentageTxt);
+        editDialog.add(taxDescriptionLabel);
+        editDialog.add(taxDescriptionTxt);
+
+        editDialog.add(editButton);
+
+
+        editDialog.setResizable(false);
+        editDialog.setVisible(true);
+
+    }
 
 
 
