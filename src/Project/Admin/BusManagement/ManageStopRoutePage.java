@@ -62,7 +62,7 @@ public class ManageStopRoutePage extends JFrame {
 
         //Children of Booking Management
         DefaultMutableTreeNode add_booking=new DefaultMutableTreeNode("Add Booking");
-        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Booking");
+        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Orders");
         DefaultMutableTreeNode manage_pricing=new DefaultMutableTreeNode("Manage Pricing");
         DefaultMutableTreeNode view_seat=new DefaultMutableTreeNode("View Seat Occupancy");
         DefaultMutableTreeNode refund_manage=new DefaultMutableTreeNode("Refund Management");
@@ -159,7 +159,7 @@ public class ManageStopRoutePage extends JFrame {
                             dispose();
                             break;
 
-                        case "View Booking":
+                        case "View Orders":
                             ViewBookingPage vbp=new ViewBookingPage();
                             dispose();
                             break;
@@ -848,10 +848,10 @@ public class ManageStopRoutePage extends JFrame {
                         psmt.setString(4,null);
                         psmt.setString(5,null);
                         psmt.setInt(6,Integer.parseInt(stop1KMTxt.getText()));
-                        psmt.setInt(7,0);
-                        psmt.setInt(8,0);
-                        psmt.setInt(9,0);
-                        psmt.setInt(10,0);
+                        psmt.setString(7,null);
+                        psmt.setString(8,null);
+                        psmt.setString(9,null);
+                        psmt.setString(10,null);
 
 
 
@@ -865,9 +865,9 @@ public class ManageStopRoutePage extends JFrame {
                         psmt.setString(5,null);
                         psmt.setInt(6,Integer.parseInt(stop1KMTxt.getText()));
                         psmt.setInt(7,Integer.parseInt(stop2KMTxt.getText()));
-                        psmt.setInt(8,0);
-                        psmt.setInt(9,0);
-                        psmt.setInt(10,0);
+                        psmt.setString(8,null);
+                        psmt.setString(9,null);
+                        psmt.setString(10,null);
 
 
 
@@ -882,8 +882,8 @@ public class ManageStopRoutePage extends JFrame {
                         psmt.setInt(6,Integer.parseInt(stop1KMTxt.getText()));
                         psmt.setInt(7,Integer.parseInt(stop2KMTxt.getText()));
                         psmt.setInt(8,Integer.parseInt(stop3KMTxt.getText()));
-                        psmt.setInt(9,0);
-                        psmt.setInt(10,0);
+                        psmt.setString(9,null);
+                        psmt.setString(10,null);
 
 
 
@@ -899,7 +899,7 @@ public class ManageStopRoutePage extends JFrame {
                         psmt.setInt(7,Integer.parseInt(stop2KMTxt.getText()));
                         psmt.setInt(8,Integer.parseInt(stop3KMTxt.getText()));
                         psmt.setInt(9,Integer.parseInt(stop4KMTxt.getText()));
-                        psmt.setInt(10,0);
+                        psmt.setString(10,null);
 
                     }
                     else if (r5.isSelected())

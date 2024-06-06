@@ -1,178 +1,179 @@
 package Project.Customer;
 
+import Project.Database;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class FeedbackPage extends JFrame {
 
     JRadioButton r1,r2,r3,r4,r5;
-    public FeedbackPage() {
+    String cusID;
+    Connection con= Database.setConnection();
+    public FeedbackPage(String cusID) {
+        this.cusID = cusID;
 
-        JLabel label=new JLabel();
-        label.setText("Share Us Your FeedBack");
-        label.setFont(new Font("Ariel",Font.BOLD,21));
-        label.setForeground(Color.orange);
-        label.setBounds(190,20,280,20);
+        if(cusID.equals("")||cusID.equals("Dummy"))
+        {
+            JOptionPane.showMessageDialog(null, "First Sign In", "Error", JOptionPane.ERROR_MESSAGE);
+            CustomerMenu cm=new CustomerMenu("Dummy");
+            dispose();
+        }
+        else {
+            JLabel label = new JLabel();
+            label.setText("Share Us Your FeedBack");
+            label.setFont(new Font("Ariel", Font.BOLD, 21));
+            label.setForeground(Color.orange);
+            label.setBounds(190, 20, 280, 20);
 
-        JLabel fullnameLabel=new JLabel();
-        fullnameLabel.setText("Full Name:");
-        fullnameLabel.setBounds(10,65,100,50);
-        fullnameLabel.setFont(new Font("Ariel",Font.BOLD,18));
-        fullnameLabel.setForeground(Color.orange);
+            JLabel orderIDLabel = new JLabel();
+            orderIDLabel.setText("Order ID:");
+            orderIDLabel.setBounds(10, 70, 100, 50);
+            orderIDLabel.setFont(new Font("Ariel", Font.BOLD, 18));
+            orderIDLabel.setForeground(Color.orange);
 
-        JTextField firstnameTxt=new JTextField();
-        firstnameTxt.setBounds(130,75,150,30);
-
-        JLabel firstNameLabel=new JLabel();
-        firstNameLabel.setText("First Name");
-        firstNameLabel.setBounds(130,90,100,50);
-        firstNameLabel.setFont(new Font("Ariel",Font.BOLD,12));
-        firstNameLabel.setForeground(Color.orange);
-
-        JTextField lastNameTxt=new JTextField();
-        lastNameTxt.setBounds(300,75,150,30);
-
-        JLabel lastNameLabel=new JLabel();
-        lastNameLabel.setText("Last Name");
-        lastNameLabel.setBounds(300,90,100,50);
-        lastNameLabel.setFont(new Font("Ariel",Font.BOLD,12));
-        lastNameLabel.setForeground(Color.orange);
-
-        JLabel orderIDLabel=new JLabel();
-        orderIDLabel.setText("Order ID:");
-        orderIDLabel.setBounds(10,130,100,50);
-        orderIDLabel.setFont(new Font("Ariel",Font.BOLD,18));
-        orderIDLabel.setForeground(Color.orange);
-
-        JTextField orderIDTxt=new JTextField();
-        orderIDTxt.setBounds(130,140,180,30);
+            JTextField orderIDTxt = new JTextField();
+            orderIDTxt.setBounds(230, 80, 180, 30);
 
 
-        JLabel emailLabel=new JLabel();
-        emailLabel.setText("Email:");
-        emailLabel.setBounds(10,185,100,50);
-        emailLabel.setFont(new Font("Ariel",Font.BOLD,18));
-        emailLabel.setForeground(Color.orange);
+            JLabel ratingLabel = new JLabel();
+            ratingLabel.setText("Overall Satisfaction:");
+            ratingLabel.setBounds(10, 130, 180, 50);
+            ratingLabel.setFont(new Font("Ariel", Font.BOLD, 18));
+            ratingLabel.setForeground(Color.orange);
 
-        JTextField emailTxt=new JTextField();
-        emailTxt.setBounds(130,195,180,30);
+            //RADIO BUTTONS
+            r1 = new JRadioButton("1");
+            r2 = new JRadioButton("2");
+            r3 = new JRadioButton("3");
+            r4 = new JRadioButton("4");
+            r5 = new JRadioButton("5");
 
+            r1.setBounds(230, 140, 40, 30);
+            r2.setBounds(280, 140, 40, 30);
+            r3.setBounds(330, 140, 40, 30);
+            r4.setBounds(380, 140, 40, 30);
+            r5.setBounds(430, 140, 40, 30);
 
-        JLabel ratingLabel=new JLabel();
-        ratingLabel.setText("Overall Satisfaction:");
-        ratingLabel.setBounds(10,235,180,50);
-        ratingLabel.setFont(new Font("Ariel",Font.BOLD,18));
-        ratingLabel.setForeground(Color.orange);
+            ButtonGroup group = new ButtonGroup();
+            group.add(r1);
+            group.add(r2);
+            group.add(r3);
+            group.add(r4);
+            group.add(r5);
 
-        //RADIO BUTTONS
-        r1=new JRadioButton("1");
-        r2=new JRadioButton("2");
-        r3=new JRadioButton("3");
-        r4=new JRadioButton("4");
-        r5=new JRadioButton("5");
+            JLabel terribleLabel = new JLabel();
+            terribleLabel.setText("(Terrible)");
+            terribleLabel.setBounds(230, 160, 48, 50);
+            terribleLabel.setFont(new Font("Ariel", Font.PLAIN, 11));
+            terribleLabel.setForeground(Color.orange);
 
-        r1.setBounds(200,245,40,30);
-        r2.setBounds(250,245,40,30);
-        r3.setBounds(300,245,40,30);
-        r4.setBounds(350,245,40,30);
-        r5.setBounds(400,245,40,30);
+            JLabel lovelyLabel = new JLabel();
+            lovelyLabel.setText("(Lovely)");
+            lovelyLabel.setBounds(430, 160, 40, 50);
+            lovelyLabel.setFont(new Font("Ariel", Font.PLAIN, 11));
+            lovelyLabel.setForeground(Color.orange);
 
-        ButtonGroup group=new ButtonGroup();
-        group.add(r1);
-        group.add(r2);
-        group.add(r3);
-        group.add(r4);
-        group.add(r5);
+            JLabel thoughtLabel = new JLabel();
+            thoughtLabel.setText("Share us your thought:");
+            thoughtLabel.setBounds(10, 210, 250, 50);
+            thoughtLabel.setFont(new Font("Ariel", Font.BOLD, 18));
+            thoughtLabel.setForeground(Color.orange);
 
-        JLabel terribleLabel=new JLabel();
-        terribleLabel.setText("(Terrible)");
-        terribleLabel.setBounds(200,265,48,50);
-        terribleLabel.setFont(new Font("Ariel",Font.PLAIN,11));
-        terribleLabel.setForeground(Color.orange);
-
-        JLabel lovelyLabel=new JLabel();
-        lovelyLabel.setText("(Lovely)");
-        lovelyLabel.setBounds(400,265,40,50);
-        lovelyLabel.setFont(new Font("Ariel",Font.PLAIN,11));
-        lovelyLabel.setForeground(Color.orange);
-
-        JLabel thoughtLabel=new JLabel();
-        thoughtLabel.setText("Share us your thought:");
-        thoughtLabel.setBounds(10,310,250,50);
-        thoughtLabel.setFont(new Font("Ariel",Font.BOLD,18));
-        thoughtLabel.setForeground(Color.orange);
-        JTextField thoughtTxt=new JTextField();
-        thoughtTxt.setBounds(230,320,250,120);
+            JTextField thoughtTxt = new JTextField();
+            thoughtTxt.setBounds(230, 220, 250, 30);
 
 
-        JButton submitButton=new JButton();
-        submitButton.setText("Submit");
-        submitButton.setBounds(300,470,110,40);
-        submitButton.setBackground(Color.cyan);
+            JButton submitButton = new JButton();
+            submitButton.setText("Submit");
+            submitButton.setBounds(300, 280, 110, 40);
+            submitButton.setBackground(Color.cyan);
 
-        submitButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println(firstnameTxt.getText());
-                System.out.println(lastNameTxt.getText());
-                System.out.println(orderIDTxt.getText());
-                System.out.println(emailTxt.getText());
-                System.out.println(thoughtTxt.getText());
-                System.out.println(getSelectedRadioButtonValue());
-                dispose();
-                CustomerMenu cm=new CustomerMenu();
+            submitButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
 
-            }
-        });
+                    boolean found = false;
+                    String checkQuery = "select * from Orders where CusID=? and OrderID=? ";
+                    try {
+                        PreparedStatement pst = con.prepareStatement(checkQuery);
+                        pst.setInt(1, Integer.parseInt(cusID));
+                        pst.setInt(2, Integer.parseInt(orderIDTxt.getText()));
+                        ResultSet rs = pst.executeQuery();
+                        found = rs.next();
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    if (!found) {
+                        JOptionPane.showMessageDialog(null, "Wrong Order ID!", "Error", JOptionPane.ERROR_MESSAGE);
+                        CustomerMenu cm = new CustomerMenu(cusID);
+                        dispose();
 
-        JButton backButton=new JButton();
-        backButton.setText("Back");
-        backButton.setBounds(140,470,110,40);
-        backButton.setBackground(Color.cyan);
+                    } else {
+                        CustomerMenu cm = new CustomerMenu(cusID);
+                        dispose();
+                        String query = "insert into Feedback(OrderID,CusID,Rating,Feedback)" +
+                                "values(?,?,?,?) ";
+                        try {
+                            PreparedStatement psmt = con.prepareStatement(query);
+                            psmt.setInt(1, Integer.parseInt(orderIDTxt.getText()));
+                            psmt.setInt(2, Integer.parseInt(cusID));
+                            psmt.setInt(3, Integer.parseInt(getSelectedRadioButtonValue()));
+                            psmt.setString(4, thoughtTxt.getText());
+                            psmt.executeUpdate();
+                        } catch (SQLException ex) {
+                            throw new RuntimeException(ex);
 
-        backButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                CustomerMenu cm=new CustomerMenu();
-                dispose();
-            }
-        });
+                        }
+                    }
+                }
+            });
 
-        //JFrame
-        setSize(600,600);
-        setTitle("FeedBack Page");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(null);
-        setVisible(true);
-        setLocationRelativeTo(null);
-        getContentPane().setBackground(Color.darkGray);
-        setResizable(false);
+            JButton backButton = new JButton();
+            backButton.setText("Back");
+            backButton.setBounds(140, 280, 110, 40);
+            backButton.setBackground(Color.cyan);
 
-        add(label);
-        add(fullnameLabel);
-        add(firstnameTxt);
-        add(firstNameLabel);
-        add(lastNameTxt);
-        add(lastNameLabel);
-        add(orderIDLabel);
-        add(orderIDTxt);
-        add(emailLabel);
-        add(emailTxt);
-        add(ratingLabel);
-        add(r1);
-        add(r2);
-        add(r3);
-        add(r4);
-        add(r5);
-        add(terribleLabel);
-        add(lovelyLabel);
-        add(thoughtLabel);
-        add(thoughtTxt);
-        add(submitButton);
-        add(backButton);
+            backButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    CustomerMenu cm = new CustomerMenu(cusID);
+                    dispose();
+                }
+            });
 
+            //JFrame
+            setSize(600, 450);
+            setTitle("FeedBack Page");
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            setLayout(null);
+            setVisible(true);
+            setLocationRelativeTo(null);
+            getContentPane().setBackground(Color.darkGray);
+            setResizable(false);
+
+            add(label);
+            add(orderIDLabel);
+            add(orderIDTxt);
+            add(ratingLabel);
+            add(r1);
+            add(r2);
+            add(r3);
+            add(r4);
+            add(r5);
+            add(terribleLabel);
+            add(lovelyLabel);
+            add(thoughtLabel);
+            add(thoughtTxt);
+            add(submitButton);
+            add(backButton);
+        }
     }
     private String getSelectedRadioButtonValue() {
         if (r1.isSelected()) {
@@ -191,6 +192,6 @@ public class FeedbackPage extends JFrame {
     }
     public static void main(String[] args)
     {
-        FeedbackPage fdp=new FeedbackPage();
+        FeedbackPage fdp=new FeedbackPage("Dummy");
     }
 }

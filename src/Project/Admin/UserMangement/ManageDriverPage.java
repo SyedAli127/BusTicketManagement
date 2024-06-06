@@ -23,6 +23,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class ManageDriverPage extends JFrame {
 
@@ -65,7 +66,7 @@ public class ManageDriverPage extends JFrame {
 
         //Children of Booking Management
         DefaultMutableTreeNode add_booking=new DefaultMutableTreeNode("Add Booking");
-        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Booking");
+        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Orders");
         DefaultMutableTreeNode manage_pricing=new DefaultMutableTreeNode("Manage Pricing");
         DefaultMutableTreeNode view_seat=new DefaultMutableTreeNode("View Seat Occupancy");
         DefaultMutableTreeNode refund_manage=new DefaultMutableTreeNode("Refund Management");
@@ -162,7 +163,7 @@ public class ManageDriverPage extends JFrame {
                             dispose();
                             break;
 
-                        case "View Booking":
+                        case "View Orders":
                             ViewBookingPage vbp=new ViewBookingPage();
                             dispose();
                             break;
@@ -366,9 +367,10 @@ public class ManageDriverPage extends JFrame {
                 String contactNumber = rs.getString("ContactNo");
                 String licenseNumber = rs.getString("LicenseNo");
                 String address = rs.getString("Address");
+                int length=address.length();
                 int salary = rs.getInt("Salary");
                 String accountStatus = rs.getString("AccountStatus");
-
+                recTable.getColumnModel().getColumn(8).setPreferredWidth(6*length);
                 String[] row = {Integer.toString(driverID), Integer.toString(managerID), firstName, lastName, dob, cnicNumber,
                         contactNumber, licenseNumber, address, Integer.toString(salary), accountStatus};
                 tableModel.addRow(row);
@@ -439,8 +441,27 @@ public class ManageDriverPage extends JFrame {
         managerIDLabel.setFont(new Font("Arial",Font.BOLD,20));
         managerIDLabel.setForeground(Color.orange);
 
-        JTextField managerIDTxt =new JTextField();
-        managerIDTxt.setBounds(200,100,150,30);
+        ArrayList<String> managerIDStatList = new ArrayList<>();
+        managerIDStatList.add("null");
+        String managerIDIDQuery ="select ManagerID from Manager where AccountStatus='Active'";
+        try
+        {
+            PreparedStatement rspst=connection.prepareStatement(managerIDIDQuery);
+            ResultSet rs=rspst.executeQuery();
+            while(rs.next())
+            {
+                String managerID=Integer.toString(rs.getInt("ManagerID"));
+                managerIDStatList.add(managerID);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String[] managerIDState = managerIDStatList.toArray(new String[0]);
+
+        JComboBox managerIDCombobox =new JComboBox<>(managerIDState);
+        managerIDCombobox.setBounds(200,150,150,35);
+        //managerIDCombobox.setBackground(Color.orange);
 
 
         JLabel firstNameLabel =new JLabel();
@@ -546,18 +567,20 @@ public class ManageDriverPage extends JFrame {
             {
                 int id,maxVal=0;
                 String dob=dobYearTxt.getText()+"-"+dobMonTxt.getText()+"-"+dobDayTxt.getText();
+                String manID=(String) managerIDCombobox.getSelectedItem();
                 String insertQuery="insert into Driver(ManagerID,FirstName,LastName,DOB,CNIC,ContactNo,LicenseNo,Address,Salary,AccountStatus) " +
                         "values(?,?,?,?,?,?,?,?,?,?)";
                 try
                 {
                     PreparedStatement psmt=connection.prepareStatement(insertQuery);
-                    if(managerIDTxt.getText().equals(""))
+                    if(manID.equals("null"))
                     {
-                        psmt.setString(1,null);
+                        psmt.setString(2,null);
 
                     }
-                    else {
-                        psmt.setInt(1,Integer.parseInt(managerIDTxt.getText()));
+                    else
+                    {
+                        psmt.setInt(2, Integer.parseInt(manID));
                     }
                     psmt.setString(2,firstNameTxt.getText());
                     psmt.setString(3,lastNameTxt.getText());
@@ -588,9 +611,11 @@ public class ManageDriverPage extends JFrame {
                     throw new RuntimeException(ex);
                 }
 
-                String[] row={Integer.toString(maxVal),managerIDTxt.getText(),firstNameTxt.getText(), lastNameTxt.getText(),
+                String[] row={Integer.toString(maxVal),manID,firstNameTxt.getText(), lastNameTxt.getText(),
                         dob,cnicNoTxt.getText(),contactNoTxt.getText(),
                         licenseNoTxt.getText(),addressTxt.getText(),salaryTxt.getText(),"Active"};
+                int len=addressTxt.getText().length();
+                recTable.getColumnModel().getColumn(8).setPreferredWidth(6*len);
 
                 tableModel.addRow(row);
                 addDialog.dispose();
@@ -599,7 +624,7 @@ public class ManageDriverPage extends JFrame {
 
         inputPanel.add(addRecLabel);
         inputPanel.add(managerIDLabel);
-        inputPanel.add(managerIDTxt);
+        inputPanel.add(managerIDCombobox);
         inputPanel.add(firstNameLabel);
         inputPanel.add(firstNameTxt);
         inputPanel.add(lastNameLabel);
@@ -914,6 +939,8 @@ public class ManageDriverPage extends JFrame {
                         {
                             String add=addressTxt.getText();
                             recTable.setValueAt(add, i, 8);
+                            int len=addressTxt.getText().length();
+                            recTable.getColumnModel().getColumn(8).setPreferredWidth(6*len);
                             String updateQuery="update Driver set Address=? where driverID=? ";
                             try
                             {

@@ -22,6 +22,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class ManageRoutePage extends JFrame {
 
@@ -63,7 +64,7 @@ public class ManageRoutePage extends JFrame {
 
         //Children of Booking Management
         DefaultMutableTreeNode add_booking=new DefaultMutableTreeNode("Add Booking");
-        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Booking");
+        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Orders");
         DefaultMutableTreeNode manage_pricing=new DefaultMutableTreeNode("Manage Pricing");
         DefaultMutableTreeNode view_seat=new DefaultMutableTreeNode("View Seat Occupancy");
         DefaultMutableTreeNode refund_manage=new DefaultMutableTreeNode("Refund Management");
@@ -160,7 +161,7 @@ public class ManageRoutePage extends JFrame {
                             dispose();
                             break;
 
-                        case "View Booking":
+                        case "View Orders":
                             ViewBookingPage vbp=new ViewBookingPage();
                             dispose();
                             break;
@@ -513,9 +514,27 @@ public class ManageRoutePage extends JFrame {
         stopRouteIDLabel.setForeground(Color.orange);
         stopRouteIDLabel.setVisible(false);
 
-        JTextField stopRouteIDTxt =new JTextField();
-        stopRouteIDTxt.setBounds(200,440,150,30);
-        stopRouteIDTxt.setVisible(false);
+        ArrayList<String> stopRouteIDStatList = new ArrayList<>();
+        String routeIDQuery ="select StopRouteID from StopRoute";
+        try
+        {
+            PreparedStatement rspst=connection.prepareStatement(routeIDQuery);
+            ResultSet rs=rspst.executeQuery();
+            while(rs.next())
+            {
+                String routeID=Integer.toString(rs.getInt("StopRouteID"));
+                stopRouteIDStatList.add(routeID);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String[] stopRouteState = stopRouteIDStatList.toArray(new String[0]);
+
+        JComboBox stopRouteIDCombobox =new JComboBox<>(stopRouteState);
+        stopRouteIDCombobox.setBounds(200,440,150,35);
+        //stopRouteIDCombobox.setBackground(Color.orange);
+        stopRouteIDCombobox.setVisible(false);
 
         JLabel selectLabel=new JLabel();
         selectLabel.setText("Select how many stops:");
@@ -587,7 +606,7 @@ public class ManageRoutePage extends JFrame {
                 if(r1.isSelected())
                 {
                     stopRouteIDLabel.setVisible(true);
-                    stopRouteIDTxt.setVisible(true);
+                    stopRouteIDCombobox.setVisible(true);
                     stop1Label.setVisible(true);
                     stop1Txt.setVisible(true);
                     stop2Label.setVisible(false);
@@ -605,7 +624,7 @@ public class ManageRoutePage extends JFrame {
                 else if(r2.isSelected())
                 {
                     stopRouteIDLabel.setVisible(true);
-                    stopRouteIDTxt.setVisible(true);
+                    stopRouteIDCombobox.setVisible(true);
                     stop1Label.setVisible(true);
                     stop1Txt.setVisible(true);
                     stop2Label.setVisible(true);
@@ -624,7 +643,7 @@ public class ManageRoutePage extends JFrame {
                 else if(r3.isSelected())
                 {
                     stopRouteIDLabel.setVisible(true);
-                    stopRouteIDTxt.setVisible(true);
+                    stopRouteIDCombobox.setVisible(true);
                     stop1Label.setVisible(true);
                     stop1Txt.setVisible(true);
                     stop2Label.setVisible(true);
@@ -643,7 +662,7 @@ public class ManageRoutePage extends JFrame {
                 else if(r4.isSelected())
                 {
                     stopRouteIDLabel.setVisible(true);
-                    stopRouteIDTxt.setVisible(true);
+                    stopRouteIDCombobox.setVisible(true);
                     stop1Label.setVisible(true);
                     stop1Txt.setVisible(true);
                     stop2Label.setVisible(true);
@@ -662,7 +681,7 @@ public class ManageRoutePage extends JFrame {
                 else if(r5.isSelected())
                 {
                     stopRouteIDLabel.setVisible(true);
-                    stopRouteIDTxt.setVisible(true);
+                    stopRouteIDCombobox.setVisible(true);
                     stop1Label.setVisible(true);
                     stop1Txt.setVisible(true);
                     stop2Label.setVisible(true);
@@ -726,20 +745,15 @@ public class ManageRoutePage extends JFrame {
                 int RouteID,maxVal=0;
                 String arrivalTime=arrivalTimeHourTxt.getText()+":"+arrivalTimeMinTxt.getText();
                 String departureTime=departureTimeHourTxt.getText()+":"+departureTimeMinTxt.getText();
+                String stopRoute=(String)stopRouteIDCombobox.getSelectedItem();
 
                 String insertQuery="insert into Route(StopRouteId,Departure,Arrival,stop1,stop2,stop3,stop4,stop5,TravelKM,DepartureTime,ArrivalTime) " +
                         "values(?,?,?,?,?,?,?,?,?,?,?)";
                 try {
                     PreparedStatement pst=connection.prepareStatement(insertQuery);
-                    if(stopRouteIDTxt.getText().equals(""))
-                    {
-                        pst.setString(1,null);
 
-                    }
-                    else{
-                        pst.setInt(1,Integer.parseInt(stopRouteIDTxt.getText()));
 
-                    }
+                    pst.setInt(1,Integer.parseInt(stopRoute));
                     pst.setString(2,departureTxt.getText());
                     pst.setString(3,arrivalTxt.getText());
                     if(stop1Txt.getText().equals(""))
@@ -811,7 +825,7 @@ public class ManageRoutePage extends JFrame {
                 }
                 String[] row={
                         Integer.toString(maxVal), departureTxt.getText(), arrivalTxt.getText(),stop1Txt.getText(),
-                        stop2Txt.getText(),stop3Txt.getText(),stop4Txt.getText(),stop5Txt.getText(),stopRouteIDTxt.getText(),travelKMTxt.getText(),
+                        stop2Txt.getText(),stop3Txt.getText(),stop4Txt.getText(),stop5Txt.getText(),stopRoute,travelKMTxt.getText(),
                         departureTime, arrivalTime
                 };
                 tableModel.addRow(row);
@@ -829,7 +843,7 @@ public class ManageRoutePage extends JFrame {
         inputPanel.add(selectLabel);
         inputPanel.add(addButton);
         inputPanel.add(stopRouteIDLabel);
-        inputPanel.add(stopRouteIDTxt);
+        inputPanel.add(stopRouteIDCombobox);
         inputPanel.add(travelKMLabel);
         inputPanel.add(travelKMTxt);
         inputPanel.add(departureTimeLabel);
@@ -1117,9 +1131,28 @@ public class ManageRoutePage extends JFrame {
         stopRouteIDLabel.setForeground(Color.orange);
         stopRouteIDLabel.setVisible(false);
 
-        JTextField stopRouteIDTxt =new JTextField();
-        stopRouteIDTxt.setBounds(200,570,150,30);
-        stopRouteIDTxt.setVisible(false);
+        ArrayList<String> routeIDStatList = new ArrayList<>();
+        String stopRouteIDQuery ="select StopRouteID from StopRoute";
+        try
+        {
+            PreparedStatement rspst=connection.prepareStatement(stopRouteIDQuery);
+            ResultSet rs=rspst.executeQuery();
+            while(rs.next())
+            {
+                String routeID=Integer.toString(rs.getInt("StopRouteID"));
+                routeIDStatList.add(routeID);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String[] routeState = routeIDStatList.toArray(new String[0]);
+
+        JComboBox stopRouteIDCombobox =new JComboBox<>(routeState);
+        stopRouteIDCombobox.setBounds(200,570,150,35);
+        //routeIDCombobox.setBackground(Color.orange);
+        stopRouteIDCombobox.setVisible(false);
+
 
         JLabel selectStopLabel =new JLabel();
         selectStopLabel.setText("Select Stops:");
@@ -1518,7 +1551,8 @@ public class ManageRoutePage extends JFrame {
                         }
                         if(stopRouteIDCheckbox.isSelected())
                         {
-                            int StopRouteID =Integer.parseInt(stopRouteIDTxt.getText());
+                            String stopRid=(String) stopRouteIDCombobox.getSelectedItem();
+                            int StopRouteID =Integer.parseInt(stopRid);
                             recTable.setValueAt(StopRouteID,i,8);
                             String updateQuery="update Route set StopRouteID=? where RouteID=?";
                             try {
@@ -1709,14 +1743,14 @@ public class ManageRoutePage extends JFrame {
                 if(stopRouteIDCheckbox.isSelected())
                 {
                     stopRouteIDLabel.setVisible(true);
-                    stopRouteIDTxt.setVisible(true);
+                    stopRouteIDCombobox.setVisible(true);
                     editButton.setVisible(true);
 
                 }
                 else
                 {
                     stopRouteIDLabel.setVisible(false);
-                    stopRouteIDTxt.setVisible(false);
+                    stopRouteIDCombobox.setVisible(false);
                     editButton.setVisible(false);
 
 
@@ -1772,7 +1806,7 @@ public class ManageRoutePage extends JFrame {
         inputPanel.add(arrivalTimeMinLabel);
         inputPanel.add(arrivalTimeMinTxt);
         inputPanel.add(stopRouteIDLabel);
-        inputPanel.add(stopRouteIDTxt);
+        inputPanel.add(stopRouteIDCombobox);
         inputPanel.add(selectStopLabel);
         inputPanel.add(r1);
         inputPanel.add(r2);

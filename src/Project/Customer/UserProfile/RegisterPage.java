@@ -1,6 +1,7 @@
 package Project.Customer.UserProfile;
 
 import Project.Customer.CustomerMenu;
+import Project.Database;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -8,12 +9,15 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class RegisterPage extends JFrame {
-
-
-    public RegisterPage() {
-
+    Connection connection= Database.setConnection();
+    String cusID;
+    public RegisterPage(String cusID) {
+        this.cusID = cusID;
 
         JPanel panel = new JPanel();
         panel.setLayout(null);
@@ -51,14 +55,14 @@ public class RegisterPage extends JFrame {
         lastNameLabel.setFont(new Font("Ariel",Font.BOLD,12));
         lastNameLabel.setForeground(Color.orange);
 
-        JLabel phoneNoLabel=new JLabel();
-        phoneNoLabel.setText("Phone No:");
-        phoneNoLabel.setBounds(10,130,100,50);
-        phoneNoLabel.setFont(new Font("Ariel",Font.BOLD,18));
-        phoneNoLabel.setForeground(Color.orange);
+        JLabel contactNoLabel =new JLabel();
+        contactNoLabel.setText("Contact Number:");
+        contactNoLabel.setBounds(10,130,150,50);
+        contactNoLabel.setFont(new Font("Ariel",Font.BOLD,18));
+        contactNoLabel.setForeground(Color.orange);
 
-        JTextField phoneNoTxt =new JTextField();
-        phoneNoTxt.setBounds(190,140,180,30);
+        JTextField contactNoTxt =new JTextField();
+        contactNoTxt.setBounds(190,140,180,30);
 
 
         JLabel cnicLabel=new JLabel();
@@ -86,14 +90,33 @@ public class RegisterPage extends JFrame {
         doBLabel.setFont(new Font("Ariel",Font.BOLD,18));
         doBLabel.setForeground(Color.orange);
 
-        JTextField doBTxt=new JTextField();
-        doBTxt.setBounds(190,290,180,30);
+        JTextField doBDayTxt =new JTextField();
+        doBDayTxt.setBounds(190,290,40,30);
 
-        JLabel dateFormatLabel=new JLabel();
-        dateFormatLabel.setText("(DD-MM-YYYY)");
-        dateFormatLabel.setBounds(190,303,150,50);
-        dateFormatLabel.setFont(new Font("Ariel",Font.PLAIN,11));
-        dateFormatLabel.setForeground(Color.orange);
+        JTextField doBMonTxt =new JTextField();
+        doBMonTxt.setBounds(240,290,40,30);
+
+        JTextField doBYearTxt =new JTextField();
+        doBYearTxt.setBounds(290,290,40,30);
+
+        JLabel doBDayLabel =new JLabel();
+        doBDayLabel.setText("(Day)");
+        doBDayLabel.setBounds(190,303,150,50);
+        doBDayLabel.setFont(new Font("Ariel",Font.PLAIN,11));
+        doBDayLabel.setForeground(Color.orange);
+
+        JLabel doBMonLabel =new JLabel();
+        doBMonLabel.setText("(Month)");
+        doBMonLabel.setBounds(240,303,150,50);
+        doBMonLabel.setFont(new Font("Ariel",Font.PLAIN,11));
+        doBMonLabel.setForeground(Color.orange);
+
+        JLabel doBYearLabel =new JLabel();
+        doBYearLabel.setText("(Year)");
+        doBYearLabel.setBounds(290,303,150,50);
+        doBYearLabel.setFont(new Font("Ariel",Font.PLAIN,11));
+        doBYearLabel.setForeground(Color.orange);
+
 
         JLabel cityLabel=new JLabel();
         cityLabel.setText("City:");
@@ -139,13 +162,38 @@ public class RegisterPage extends JFrame {
 
         submitButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent e)
+            {
+                if (passwordTxt.getText().equals(cnfrmpasswordTxt.getText()))
+                {
+                    String dob = doBYearTxt.getText() + "-" + doBMonTxt.getText() + "-" + doBDayTxt.getText();
+                    String insertQuery = "insert into Customer(FirstName,LastName,CNIC,DOB,ContactNo,Email,Address,Password,City,AccountStatus) values(?,?,?,?,?,?,?,?,?,?)";
+                    try
+                    {
+                        PreparedStatement psmt = connection.prepareStatement(insertQuery);
+                        psmt.setString(1, firstnameTxt.getText());
+                        psmt.setString(2, lastNameTxt.getText());
+                        psmt.setString(3, cnicTxt.getText());
+                        psmt.setString(4, dob);
+                        psmt.setString(5, contactNoTxt.getText());
+                        psmt.setString(6, emailTxt.getText());
+                        psmt.setString(7, addressTxt.getText());
+                        psmt.setString(8, passwordTxt.getText());
+                        psmt.setString(9,cityTxt.getText());
+                        psmt.setString(10, "Active");
+                        psmt.executeUpdate();
+
+                    }
+                    catch (SQLException ex)
+                    {
+                        throw new RuntimeException(ex);
+                    }
 
 
-                //System.out.println(getSelectedRadioButtonValue());
-                CustomerMenu CustomerMenu=new CustomerMenu();
-                dispose();
+                    CustomerMenu CustomerMenu = new CustomerMenu(cusID);
+                    dispose();
 
+                }
             }
         });
 
@@ -175,7 +223,7 @@ public class RegisterPage extends JFrame {
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                CustomerMenu cm=new CustomerMenu();
+                CustomerMenu cm=new CustomerMenu(cusID);
                 dispose();
             }
         });
@@ -197,15 +245,19 @@ public class RegisterPage extends JFrame {
         panel.add(firstNameLabel);
         panel.add(lastNameTxt);
         panel.add(lastNameLabel);
-        panel.add(phoneNoLabel);
-        panel.add(phoneNoTxt);
+        panel.add(contactNoLabel);
+        panel.add(contactNoTxt);
         panel.add(emailLabel);
         panel.add(emailTxt);
         panel.add(cnicLabel);
         panel.add(cnicTxt);
-        panel.add(dateFormatLabel);
         panel.add(doBLabel);
-        panel.add(doBTxt);
+        panel.add(doBDayLabel);
+        panel.add(doBMonLabel);
+        panel.add(doBYearLabel);
+        panel.add(doBDayTxt);
+        panel.add(doBMonTxt);
+        panel.add(doBYearTxt);
         panel.add(cityLabel);
         panel.add(cityTxt);
         panel.add(addressLabel);
@@ -218,7 +270,9 @@ public class RegisterPage extends JFrame {
         panel.add(submitButton);
         panel.add(backButton);
 
-
+    }
+    public static void main(String[] args) {
+        RegisterPage tp=new RegisterPage("Dummy");
     }
 
 }

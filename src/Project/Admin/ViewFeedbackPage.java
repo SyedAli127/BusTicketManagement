@@ -9,11 +9,10 @@ import Project.Admin.BusManagement.ManageStopRoutePage;
 import Project.Admin.UserMangement.ManageDriverPage;
 import Project.Admin.UserMangement.ManageManagerPage;
 import Project.Admin.UserMangement.ManageUserPage;
+import Project.Database;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
@@ -21,13 +20,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class ViewFeedbackPage extends JFrame{
 
     DefaultTableModel tableModel;
     JTable recTable;
+    Connection connection= Database.setConnection();
     public ViewFeedbackPage() {
 
         JLabel label=new JLabel();
@@ -64,7 +66,7 @@ public class ViewFeedbackPage extends JFrame{
 
         //Children of Booking Management
         DefaultMutableTreeNode add_booking=new DefaultMutableTreeNode("Add Booking");
-        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Booking");
+        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Orders");
         DefaultMutableTreeNode manage_pricing=new DefaultMutableTreeNode("Manage Pricing");
         DefaultMutableTreeNode view_seat=new DefaultMutableTreeNode("View Seat Occupancy");
         DefaultMutableTreeNode refund_manage=new DefaultMutableTreeNode("Refund Management");
@@ -161,7 +163,7 @@ public class ViewFeedbackPage extends JFrame{
                             dispose();
                             break;
 
-                        case "View Booking":
+                        case "View Orders":
                             ViewBookingPage vbp=new ViewBookingPage();
                             dispose();
                             break;
@@ -240,14 +242,14 @@ public class ViewFeedbackPage extends JFrame{
 
 
 
-        JLabel orderIDLabel =new JLabel();
-        orderIDLabel.setText("Order ID:");
-        orderIDLabel.setBounds(240,80,150,50);
-        orderIDLabel.setFont(new Font("Arial",Font.BOLD,18));
-        orderIDLabel.setForeground(Color.orange);
+        JLabel feedbackIDLabel =new JLabel();
+        feedbackIDLabel.setText("Feedback ID:");
+        feedbackIDLabel.setBounds(240,80,150,50);
+        feedbackIDLabel.setFont(new Font("Arial",Font.BOLD,18));
+        feedbackIDLabel.setForeground(Color.orange);
 
-        JTextField orderIDTxt =new JTextField();
-        orderIDTxt.setBounds(400,90,150,30);
+        JTextField feedbackIDTxt =new JTextField();
+        feedbackIDTxt.setBounds(400,90,150,30);
 
         JButton searchButton=new JButton("Search");
         searchButton.setBounds(570,90,100,30);
@@ -255,7 +257,32 @@ public class ViewFeedbackPage extends JFrame{
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                String fdID = feedbackIDTxt.getText();
+                boolean found = false;
 
+                String query = "select f.FeedbackID,f.OrderID,f.CusID,f.Rating,f.Feedback,cus.FirstName,cus.LastName,cus.Email from Feedback f join Customer cus on cus.CusID=f.CusID" +
+                        " where FeedbackID=?";
+                try {
+
+                    PreparedStatement pst = connection.prepareStatement(query);
+                    pst.setInt(1, Integer.parseInt(fdID));
+                    ResultSet rs = pst.executeQuery();
+                    while (rs.next()) {
+                        tableModel.setRowCount(0);
+                        int fID=rs.getInt("FeedbackID");
+                        int orderID=rs.getInt("OrderID");
+                        int cusID=rs.getInt("CusID");
+                        String firstName=rs.getString("FirstName");
+                        String lastName=rs.getString("LastName");
+                        String email=rs.getString("Email");
+                        int rating=rs.getInt("Rating");
+                        String feedback=rs.getString("Feedback");
+                        String[] data={Integer.toString(fID),Integer.toString(orderID),Integer.toString(cusID),firstName,lastName,email,Integer.toString(rating),feedback};
+                        tableModel.addRow(data);
+                    }
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
 
@@ -275,25 +302,42 @@ public class ViewFeedbackPage extends JFrame{
         tabPanel.setBounds(240,220,600,350);
         tabPanel.setLayout(null);
 
-        String[][] data={{"65", "Murtaza", "Sheikh", "abc123456@gmail.com", "5",
-                "Our planet is in danger. The food system is depleting our soils, changing our climate and driving biodiversity loss. Poorer communities at home and in the Global South are bearing the brunt of the destruction wreaked by agribusiness corporations." +
-                "But it doesn't have to be like this.We believe that securing nutritious, delicious food for all can and should go hand in hand with regenerating our planet. Join us to help transform the food system, for nature, for justice."}
-                ,{"1", "A", "X", "abc12345@gmail.com", "1",""},
-                {"2", "B", "Y", "abc12345@gmail.com", "4",""},
-                {"3", "C", "Z", "abc12345@gmail.com", "2",""},
-                {"5", "D", "U", "abc12345@gmail.com", "3",""}};
 
-        String[]column={"Order ID","First Name","Last Name","Email","Rating","Feedback"};
+        String[]column={"Feedback ID","Order ID","Customer ID","First Name","Last Name","Email","Rating","Feedback"};
 
-        tableModel=new DefaultTableModel(data,column);
+        tableModel=new DefaultTableModel(column,0);
         recTable=new JTable(tableModel);
         recTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // This ensures horizontal
 
-        recTable.getColumnModel().getColumn(3).setPreferredWidth(180);
-        recTable.getColumnModel().getColumn(5).setPreferredWidth(300);
-        recTable.getColumnModel().getColumn(5).setMinWidth(150);
-        recTable.getColumnModel().getColumn(5).setMaxWidth(2000);
-        recTable.getColumnModel().getColumn(5).setResizable(true);
+        recTable.getColumnModel().getColumn(0).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(1).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(2).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(3).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(4).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(5).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(6).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(7).setPreferredWidth(100);
+
+        String query="select f.FeedbackID,f.OrderID,f.CusID,f.Rating,f.Feedback,cus.FirstName,cus.LastName,cus.Email from Feedback f join Customer cus on cus.CusID=f.CusID";
+        try {
+            PreparedStatement psmt=connection.prepareStatement(query);
+            ResultSet rs=psmt.executeQuery();
+            while (rs.next())
+            {
+                int fID=rs.getInt("FeedbackID");
+                int orderID=rs.getInt("OrderID");
+                int cusID=rs.getInt("CusID");
+                String firstName=rs.getString("FirstName");
+                String lastName=rs.getString("LastName");
+                String email=rs.getString("Email");
+                int rating=rs.getInt("Rating");
+                String feedback=rs.getString("Feedback");
+                String[] data={Integer.toString(fID),Integer.toString(orderID),Integer.toString(cusID),firstName,lastName,email,Integer.toString(rating),feedback};
+                tableModel.addRow(data);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
         JLabel sortbyLabel=new JLabel("(Sort By)");
         sortbyLabel.setBounds(400,140,50,30);
@@ -301,7 +345,7 @@ public class ViewFeedbackPage extends JFrame{
         sortbyLabel.setForeground(Color.orange);
 
 
-        String[] sortCombo={"-","By Rating(Ascending)","By Rating(Descending)","By OrderID(Ascending)","By OrderID(Descending)"};
+        String[] sortCombo={"-","By Rating(Ascending)","By Rating(Descending)"};
         JComboBox sortComboBox=new JComboBox<>(sortCombo);
         sortComboBox.setBounds(400,170,180,30);
 
@@ -317,14 +361,6 @@ public class ViewFeedbackPage extends JFrame{
 
                     case "By Rating(Descending)":
                         ratingDescending();
-                        break;
-
-                    case "By OrderID(Ascending)":
-                        orderIDAscending();
-                        break;
-
-                    case "By OrderID(Descending)":
-                        orderIDDescending();
                         break;
                 }
 
@@ -349,8 +385,8 @@ public class ViewFeedbackPage extends JFrame{
 
         add(label);
         add(menuPanel);
-        add(orderIDLabel);
-        add(orderIDTxt);
+        add(feedbackIDLabel);
+        add(feedbackIDTxt);
         add(searchButton);
         add(removeButton);
         add(tabPanel);
@@ -378,14 +414,14 @@ public class ViewFeedbackPage extends JFrame{
         addRecLabel.setBounds(100, 30,240,30);
 
 
-        JLabel orderIDLabel =new JLabel();
-        orderIDLabel.setText("Order ID:");
-        orderIDLabel.setBounds(10,100,180,30);
-        orderIDLabel.setFont(new Font("Arial",Font.BOLD,17));
-        orderIDLabel.setForeground(Color.orange);
+        JLabel feedbackIDLabel =new JLabel();
+        feedbackIDLabel.setText("Feedback ID:");
+        feedbackIDLabel.setBounds(40,100,180,30);
+        feedbackIDLabel.setFont(new Font("Arial",Font.BOLD,20));
+        feedbackIDLabel.setForeground(Color.orange);
 
-        JTextField orderIDTxt =new JTextField();
-        orderIDTxt.setBounds(200,100,150,30);
+        JTextField feedbackIDTxt =new JTextField();
+        feedbackIDTxt.setBounds(200,100,150,30);
 
 
         JButton searchButton=new JButton("Search");
@@ -395,22 +431,29 @@ public class ViewFeedbackPage extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                String IDVal = orderIDTxt.getText();
+                String IDVal = feedbackIDTxt.getText();
                 boolean found=false;
                 for (int i = 0; i < tableModel.getRowCount(); i++)
                 {
                     if (tableModel.getValueAt(i, 0).equals(IDVal))
-                    { // Checking Reg number at index 4 & Bus ID at index 0
+                    {  String delQuery="delete from Feedback where FeedbackID=?";
+                        try {
+                            PreparedStatement pst=connection.prepareStatement(delQuery);
+                            pst.setString(1,IDVal);
+                            pst.executeUpdate();
+                        } catch (SQLException ex) {
+                            throw new RuntimeException(ex);
+                        }
                         tableModel.removeRow(i);
                         found = true;
                         break;
                     }
                 }
                 if (!found) {
-                    JOptionPane.showMessageDialog(removeDialog, "Record with Order ID " + IDVal +" not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(removeDialog, "Record with Feedback ID " + IDVal +" not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
                 }
                 else {
-                    JOptionPane.showMessageDialog(removeDialog, "Record with Order ID " + IDVal +  " removed successfully.", "Record Removed", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(removeDialog, "Record with Feedback ID " + IDVal +  " removed successfully.", "Record Removed", JOptionPane.INFORMATION_MESSAGE);
                 }
             }
 
@@ -419,8 +462,8 @@ public class ViewFeedbackPage extends JFrame{
         });
 
         removeDialog.add(addRecLabel);
-        removeDialog.add(orderIDLabel);
-        removeDialog.add(orderIDTxt);
+        removeDialog.add(feedbackIDLabel);
+        removeDialog.add(feedbackIDTxt);
         removeDialog.add(searchButton);
 
         removeDialog.setVisible(true);
@@ -429,47 +472,54 @@ public class ViewFeedbackPage extends JFrame{
 
     public void ratingAscending()
     {
-        TableRowSorter<TableModel> sorter = new TableRowSorter<>(tableModel);
-        recTable.setRowSorter(sorter);
-        List<RowSorter.SortKey> sortKeys = new ArrayList<>();
-        int columnIndexToSort = 4; // Assuming rating is in the 5th column (index 4)
-        sortKeys.add(new RowSorter.SortKey(columnIndexToSort, SortOrder.ASCENDING));
-        sorter.setSortKeys(sortKeys);
-        sorter.sort();
+        String query="select f.FeedbackID,f.OrderID,f.CusID,f.Rating,f.Feedback,cus.FirstName,cus.LastName,cus.Email from Feedback f join Customer cus on cus.CusID=f.CusID order by Rating ";
+        try {
+            PreparedStatement psmt=connection.prepareStatement(query);
+            ResultSet rs=psmt.executeQuery();
+            tableModel.setRowCount(0);
+            while (rs.next())
+            {
+                int fID=rs.getInt("FeedbackID");
+                int orderID=rs.getInt("OrderID");
+                int cusID=rs.getInt("CusID");
+                String firstName=rs.getString("FirstName");
+                String lastName=rs.getString("LastName");
+                String email=rs.getString("Email");
+                int rating=rs.getInt("Rating");
+                String feedback=rs.getString("Feedback");
+                String[] data={Integer.toString(fID),Integer.toString(orderID),Integer.toString(cusID),firstName,lastName,email,Integer.toString(rating),feedback};
+                tableModel.addRow(data);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     public void ratingDescending()
     {
-        TableRowSorter<TableModel> sorter = new TableRowSorter<>(tableModel);
-        recTable.setRowSorter(sorter);
-        List<RowSorter.SortKey> sortKeys = new ArrayList<>();
-        int columnIndexToSort = 4; // Assuming rating is in the 5th column (index 4)
-        sortKeys.add(new RowSorter.SortKey(columnIndexToSort, SortOrder.DESCENDING));
-        sorter.setSortKeys(sortKeys);
-        sorter.sort();
+        String query="select f.FeedbackID,f.OrderID,f.CusID,f.Rating,f.Feedback,cus.FirstName,cus.LastName,cus.Email from Feedback f join Customer cus on cus.CusID=f.CusID order by Rating desc ";
+        try {
+            PreparedStatement psmt=connection.prepareStatement(query);
+            ResultSet rs=psmt.executeQuery();
+            tableModel.setRowCount(0);
+            while (rs.next())
+            {
+                int fID=rs.getInt("FeedbackID");
+                int orderID=rs.getInt("OrderID");
+                int cusID=rs.getInt("CusID");
+                String firstName=rs.getString("FirstName");
+                String lastName=rs.getString("LastName");
+                String email=rs.getString("Email");
+                int rating=rs.getInt("Rating");
+                String feedback=rs.getString("Feedback");
+                String[] data={Integer.toString(fID),Integer.toString(orderID),Integer.toString(cusID),firstName,lastName,email,Integer.toString(rating),feedback};
+                tableModel.addRow(data);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
-    public void orderIDAscending()
-    {
-        TableRowSorter<TableModel> sorter = new TableRowSorter<>(tableModel);
-        recTable.setRowSorter(sorter);
-        List<RowSorter.SortKey> sortKeys = new ArrayList<>();
-        int columnIndexToSort = 0; // Assuming OrderID is in the 1st column (index 0)
-        sortKeys.add(new RowSorter.SortKey(columnIndexToSort, SortOrder.ASCENDING));
-        sorter.setSortKeys(sortKeys);
-        sorter.sort();
-    }
-
-    public void orderIDDescending()
-    {
-        TableRowSorter<TableModel> sorter = new TableRowSorter<>(tableModel);
-        recTable.setRowSorter(sorter);
-        List<RowSorter.SortKey> sortKeys = new ArrayList<>();
-        int columnIndexToSort = 0; // Assuming rating is in the 5th column (index 4)
-        sortKeys.add(new RowSorter.SortKey(columnIndexToSort, SortOrder.DESCENDING));
-        sorter.setSortKeys(sortKeys);
-        sorter.sort();
-    }
-
 
 
     public static void main(String[] args)

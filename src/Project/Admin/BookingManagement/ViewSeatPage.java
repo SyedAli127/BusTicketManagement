@@ -10,18 +10,31 @@ import Project.Admin.UserMangement.ManageDriverPage;
 import Project.Admin.UserMangement.ManageManagerPage;
 import Project.Admin.UserMangement.ManageUserPage;
 import Project.Admin.ViewFeedbackPage;
+import Project.Database;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class ViewSeatPage extends JFrame {
 
-
+    DefaultTableModel tableModel;
+    JTable recTable;
+    Connection conn = Database.setConnection();
     public ViewSeatPage() {
+        String seattype=null,bookid=null;
+
         JLabel label=new JLabel();
         label.setText("View Seats");
         label.setBounds(450,20,250,50);
@@ -55,7 +68,7 @@ public class ViewSeatPage extends JFrame {
 
         //Children of Booking Management
         DefaultMutableTreeNode add_booking=new DefaultMutableTreeNode("Add Booking");
-        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Booking");
+        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Orders");
         DefaultMutableTreeNode manage_pricing=new DefaultMutableTreeNode("Manage Pricing");
         DefaultMutableTreeNode view_seat=new DefaultMutableTreeNode("View Seat Occupancy");
         DefaultMutableTreeNode refund_manage=new DefaultMutableTreeNode("Refund Management");
@@ -152,7 +165,7 @@ public class ViewSeatPage extends JFrame {
                             dispose();
                             break;
 
-                        case "View Booking":
+                        case "View Orders":
                             ViewBookingPage vbp=new ViewBookingPage();
                             dispose();
                             break;
@@ -229,6 +242,64 @@ public class ViewSeatPage extends JFrame {
         // Set the custom renderer to the JTree
         dashboardTree.setCellRenderer(renderer);
 
+        ArrayList<String> bookIDList = new ArrayList<>();
+        bookIDList.add("-");
+        String query="Select bookID from Booking where BookingStatus='Active' order by bookID";
+        try {
+            PreparedStatement pst=conn.prepareStatement(query);
+            ResultSet rs=pst.executeQuery();
+            while (rs.next())
+            {
+                bookIDList.add(rs.getString(1));
+            }
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeException(e);
+        }
+        String[] bookID=bookIDList.toArray(new String[0]);
+
+        JComboBox bookIDCombo = new JComboBox<>(bookID);
+        bookIDCombo.setBounds(250,140,150,35);
+
+
+
+        JLabel bookIDLabel = new JLabel();
+        bookIDLabel.setText("Booking ID");
+        bookIDLabel.setBounds(250, 100, 140, 35);
+        bookIDLabel.setFont(new Font("Arial", Font.BOLD, 22));
+        bookIDLabel.setForeground(Color.orange);
+
+        JLabel seatTypeLabel = new JLabel();
+        seatTypeLabel.setText("Seat Type");
+        seatTypeLabel.setBounds(480, 100, 140, 35);
+        seatTypeLabel.setFont(new Font("Arial", Font.BOLD, 22));
+        seatTypeLabel.setForeground(Color.orange);
+
+        String[] type ={"-","Economy Seat","Luxury Seat","FirstClass Seat"};
+        JComboBox seatTypeCombo = new JComboBox<>(type);
+        seatTypeCombo.setBounds(480,140,150,35);
+
+        /*seatTypeCombo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                seattype=(String)seatTypeCombo.getSelectedItem();
+            }
+        });
+
+        String[] column={"Order ID","Book ID","Customer ID","PromoCode ID","Order Date","Order Details","Total Price"};
+
+        tableModel=new DefaultTableModel(column,0);
+        recTable=new JTable(tableModel);
+        recTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // This ensures horizontal
+
+        recTable.getColumnModel().getColumn(0).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(1).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(2).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(3).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(4).setPreferredWidth(100);
+        */
+
 
 
         setTitle("View Seats Page");
@@ -243,6 +314,10 @@ public class ViewSeatPage extends JFrame {
 
         add(label);
         add(menuPanel);
+        add(bookIDLabel);
+        add(seatTypeLabel);
+        add(bookIDCombo);
+        add(seatTypeCombo);
 
 
     }

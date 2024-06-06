@@ -111,15 +111,17 @@ public class AdminSigninPage extends JFrame {
 
         admin.addActionListener(radio);
         manager.addActionListener(radio);
-        String query="select * from Manager where Email=? and Password=?";
+        String query="select ManagerID from Manager where Email=? and Password=? and AccountStatus='Active'";
 
         signButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e)
             {
+                String manID ="Dummy";
                 if(admin.isSelected())
                 {
                     if (emailTxt.getText().equals("ali") && passwordTxt.getText().equals("ali")) {
+                        JOptionPane.showMessageDialog(null, "Sign in successful!", "Message", JOptionPane.INFORMATION_MESSAGE);
                         AdminDashboard adminDashboard = new AdminDashboard();
                         dispose();
                     } else {
@@ -135,18 +137,24 @@ public class AdminSigninPage extends JFrame {
                         d.setString(1,emailTxt.getText());
                         d.setString(2,passwordTxt.getText());
                         ResultSet rs = d.executeQuery();
-                        found = rs.next();
+                        while (rs.next())
+                        {
+                            manID=rs.getString(1);
+                            found=true;
+                        }
 
                     } catch (SQLException ex)
                     {
                         throw new RuntimeException(ex);
                     }
                     if(!found){
-                        System.out.println("Error");
+                        JOptionPane.showMessageDialog(null, "Sign in Failed!", "Error", JOptionPane.ERROR_MESSAGE);
+
                     }
                     else {
                         System.out.println("Mubarak");
-                        ManagerDashboard md=new ManagerDashboard();
+                        JOptionPane.showMessageDialog(null, "Sign in successful!", "Message", JOptionPane.INFORMATION_MESSAGE);
+                        ManagerDashboard md=new ManagerDashboard(manID);
                         dispose();
                     }
 

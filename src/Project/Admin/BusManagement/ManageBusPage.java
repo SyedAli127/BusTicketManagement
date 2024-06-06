@@ -19,6 +19,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.*;
+import java.util.ArrayList;
 
 public class ManageBusPage extends JFrame {
     DefaultTableModel tableModel;
@@ -60,7 +61,7 @@ public class ManageBusPage extends JFrame {
 
         //Children of Booking Management
         DefaultMutableTreeNode add_booking=new DefaultMutableTreeNode("Add Booking");
-        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Booking");
+        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Orders");
         DefaultMutableTreeNode manage_pricing=new DefaultMutableTreeNode("Manage Pricing");
         DefaultMutableTreeNode view_seat=new DefaultMutableTreeNode("View Seat Occupancy");
         DefaultMutableTreeNode refund_manage=new DefaultMutableTreeNode("Refund Management");
@@ -157,7 +158,7 @@ public class ManageBusPage extends JFrame {
                             dispose();
                             break;
 
-                        case "View Booking":
+                        case "View Orders":
                             ViewBookingPage vbp=new ViewBookingPage();
                             dispose();
                             break;
@@ -465,8 +466,27 @@ public class ManageBusPage extends JFrame {
         managerIDLabel.setFont(new Font("Arial",Font.BOLD,20));
         managerIDLabel.setForeground(Color.orange);
 
-        JTextField managerIDTxt =new JTextField();
-        managerIDTxt.setBounds(230,100,150,30);
+        ArrayList<String> managerIDStatList = new ArrayList<>();
+        managerIDStatList.add("null");
+        String managerIDIDQuery ="select ManagerID from Manager where AccountStatus='Active'";
+        try
+        {
+            PreparedStatement rspst=connection.prepareStatement(managerIDIDQuery);
+            ResultSet rs=rspst.executeQuery();
+            while(rs.next())
+            {
+                String managerID=Integer.toString(rs.getInt("ManagerID"));
+                managerIDStatList.add(managerID);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String[] managerIDState = managerIDStatList.toArray(new String[0]);
+
+        JComboBox managerIDCombobox =new JComboBox<>(managerIDState);
+        managerIDCombobox.setBounds(230,100,150,35);
+        //managerIDCombobox.setBackground(Color.orange);
 
 
         JLabel busCompLabel =new JLabel();
@@ -555,20 +575,22 @@ public class ManageBusPage extends JFrame {
                 int economySeat = Integer.parseInt(economyTxt.getText());
                 int luxurySeat = Integer.parseInt(luxuryTxt.getText());
                 int firstSeat = Integer.parseInt(firstClassTxt.getText());
+                String manID=(String) managerIDCombobox.getSelectedItem();
                 int totalSeat=economySeat+luxurySeat+firstSeat;
                 try{
                     Connection connection = Database.setConnection();
                     String insertQuery = "INSERT INTO Bus (ManagerID,BusCompany,BusName,Model, RegistrationNo,ChassisNo, EconomySeats, LuxurySeats, FirstClassSeats, TotalSeats,Availability) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
                     PreparedStatement psmt= connection.prepareStatement(insertQuery);
-                    if(managerIDTxt.getText().equals(""))
+                    if(manID.equals("null"))
                     {
                         psmt.setString(1,null);
 
                     }
-                    else {
-                        psmt.setInt(1,Integer.parseInt(managerIDTxt.getText()));
-
+                    else
+                    {
+                        psmt.setInt(1, Integer.parseInt(manID));
                     }
+
                     psmt.setString(2,busCompTxt.getText());
                     psmt.setString(3,busNameTxt.getText());
                     psmt.setString(4,modelTxt.getText());
@@ -593,6 +615,12 @@ public class ManageBusPage extends JFrame {
 
                         }
                     }
+                    String queryforSeats="DECLARE @NewBusID INT SET @NewBusID = ? " +
+                            "EXEC PopulateSeats @NewBusID;";
+                    PreparedStatement ps=connection.prepareStatement(queryforSeats);
+                    ps.setInt(1,maxVal);
+                    ps.executeUpdate();
+
 
                 } catch (SQLException ex)
                 {
@@ -606,7 +634,7 @@ public class ManageBusPage extends JFrame {
 
                 String[] row={Integer.toString(maxVal), busCompTxt.getText(), busNameTxt.getText(), modelTxt.getText(), regNoTxt.getText(), chassisNoTxt.getText(),
                         Integer.toString(economySeat), Integer.toString(luxurySeat), Integer.toString(firstSeat), Integer.toString(totalSeat),
-                        economySeats,luxurySeats,firstClassSeats,managerIDTxt.getText(),"Active"};
+                        economySeats,luxurySeats,firstClassSeats,manID,"Active"};
 
                 tableModel.addRow(row);
 
@@ -616,7 +644,7 @@ public class ManageBusPage extends JFrame {
 
         addDialog.add(addRecLabel);
         addDialog.add(managerIDLabel);
-        addDialog.add(managerIDTxt);
+        addDialog.add(managerIDCombobox);
         addDialog.add(busNameLabel);
         addDialog.add(busNameTxt);
         addDialog.add(busCompLabel);

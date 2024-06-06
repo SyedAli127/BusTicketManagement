@@ -23,6 +23,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class ManageBusMaintenancePage extends JFrame {
 
@@ -64,7 +65,7 @@ public class ManageBusMaintenancePage extends JFrame {
 
         //Children of Booking Management
         DefaultMutableTreeNode add_booking=new DefaultMutableTreeNode("Add Booking");
-        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Booking");
+        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Orders");
         DefaultMutableTreeNode manage_pricing=new DefaultMutableTreeNode("Manage Pricing");
         DefaultMutableTreeNode view_seat=new DefaultMutableTreeNode("View Seat Occupancy");
         DefaultMutableTreeNode refund_manage=new DefaultMutableTreeNode("Refund Management");
@@ -161,7 +162,7 @@ public class ManageBusMaintenancePage extends JFrame {
                             dispose();
                             break;
 
-                        case "View Booking":
+                        case "View Orders":
                             ViewBookingPage vbp=new ViewBookingPage();
                             dispose();
                             break;
@@ -442,16 +443,54 @@ public class ManageBusMaintenancePage extends JFrame {
         busIDLabel.setFont(new Font("Arial",Font.BOLD,20));
         busIDLabel.setForeground(Color.orange);
 
-        JTextField busIDTxt=new JTextField();
-        busIDTxt.setBounds(200,100,180,30);
+        ArrayList<String> busIDStatList = new ArrayList<>();
+        String busIDIDQuery ="select BusID from Bus";
+        try
+        {
+            PreparedStatement rspst=conn.prepareStatement(busIDIDQuery);
+            ResultSet rs=rspst.executeQuery();
+            while(rs.next())
+            {
+                String busID=Integer.toString(rs.getInt("BusID"));
+                busIDStatList.add(busID);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String[] busIDState = busIDStatList.toArray(new String[0]);
+
+        JComboBox busIDCombobox =new JComboBox<>(busIDState);
+        busIDCombobox.setBounds(200,100,150,35);
+        //busIDCombobox.setBackground(Color.orange);
 
         JLabel managerIDLabel=new JLabel("Manager ID:");
         managerIDLabel.setFont(new Font("Arial",Font.BOLD,20));
         managerIDLabel.setForeground(Color.orange);
         managerIDLabel.setBounds(10,150,180,30);
 
-        JTextField managerIDTxt=new JTextField();
-        managerIDTxt.setBounds(200,150,180,30);
+        ArrayList<String> managerIDStatList = new ArrayList<>();
+        managerIDStatList.add("null");
+        String managerIDIDQuery ="select ManagerID from Manager where AccountStatus='Active'";
+        try
+        {
+            PreparedStatement rspst=conn.prepareStatement(managerIDIDQuery);
+            ResultSet rs=rspst.executeQuery();
+            while(rs.next())
+            {
+                String managerID=Integer.toString(rs.getInt("ManagerID"));
+                managerIDStatList.add(managerID);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String[] managerIDState = managerIDStatList.toArray(new String[0]);
+
+        JComboBox managerIDCombobox =new JComboBox<>(managerIDState);
+        managerIDCombobox.setBounds(200,150,150,35);
+        //managerIDCombobox.setBackground(Color.orange);
+
 
         JLabel maintenanceDateLabel=new JLabel("Maintenance Date:");
         maintenanceDateLabel.setFont(new Font("Arial",Font.BOLD,20));
@@ -552,21 +591,23 @@ public class ManageBusMaintenancePage extends JFrame {
                 int iD,maxVal=0;
                 String maintenanceDate=maintenanceDateYearTxt.getText()+"-"+maintenanceDateMonTxt.getText()+"-"+maintenanceDateDayTxt.getText();
                 String nextsch=nextSchDateYearTxt.getText()+"-"+nextSchDateMonTxt.getText()+"-"+nextSchDateDayTxt.getText();
+                String manID=(String) managerIDCombobox.getSelectedItem();
+                String bID=(String)busIDCombobox.getSelectedItem();
 
                 String insertQuery="insert into BusMaintenance(BusID,ManagerID,MaintenanceDate,MaintenanceType,Cost,Description,NextScheduleDate) values(?,?,?,?,?,?,?)";
                 try {
                     PreparedStatement psmt=conn.prepareStatement(insertQuery);
-                    psmt.setInt(1,Integer.parseInt(busIDTxt.getText()));
 
-                    if(managerIDTxt.getText().equals(""))
+                    psmt.setInt(1,Integer.parseInt(bID));
+
+                    if(manID.equals("null"))
                     {
-
                         psmt.setString(2,null);
 
                     }
-                    else{
-                        psmt.setInt(2,Integer.parseInt(managerIDTxt.getText()));
-
+                    else
+                    {
+                        psmt.setInt(2, Integer.parseInt(manID));
                     }
                     psmt.setString(3,maintenanceDate);
                     psmt.setString(4,maintenanceTypeTxt.getText());
@@ -591,7 +632,7 @@ public class ManageBusMaintenancePage extends JFrame {
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);
                 }
-                String[] row={Integer.toString(maxVal),busIDTxt.getText(),managerIDTxt.getText(),maintenanceDate,maintenanceTypeTxt.getText(),costTxt.getText(),descriptionTxt.getText(),nextsch};
+                String[] row={Integer.toString(maxVal),bID,manID,maintenanceDate,maintenanceTypeTxt.getText(),costTxt.getText(),descriptionTxt.getText(),nextsch};
 
 
 
@@ -604,9 +645,9 @@ public class ManageBusMaintenancePage extends JFrame {
 
         inputPanel.add(addRecordLabel);
         inputPanel.add(busIDLabel);
-        inputPanel.add(busIDTxt);
+        inputPanel.add(busIDCombobox);
         inputPanel.add(managerIDLabel);
-        inputPanel.add(managerIDTxt);
+        inputPanel.add(managerIDCombobox);
         inputPanel.add(maintenanceDateLabel);
         inputPanel.add(maintenanceDateDayLabel);
         inputPanel.add(maintenanceDateDayTxt);
@@ -794,9 +835,27 @@ public class ManageBusMaintenancePage extends JFrame {
         busIDLabel.setForeground(Color.orange);
         busIDLabel.setVisible(false);
 
-        JTextField busIDTxt =new JTextField();
-        busIDTxt.setBounds(200,290,150,30);
-        busIDTxt.setVisible(false);
+        ArrayList<String> busIDStatList = new ArrayList<>();
+        String busIDIDQuery ="select BusID from Bus";
+        try
+        {
+            PreparedStatement rspst=conn.prepareStatement(busIDIDQuery);
+            ResultSet rs=rspst.executeQuery();
+            while(rs.next())
+            {
+                String busID=Integer.toString(rs.getInt("BusID"));
+                busIDStatList.add(busID);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String[] busIDState = busIDStatList.toArray(new String[0]);
+
+        JComboBox busIDCombobox =new JComboBox<>(busIDState);
+        busIDCombobox.setBounds(200,290,150,35);
+        //busIDCombobox.setBackground(Color.orange);
+        busIDCombobox.setVisible(false);
 
         JLabel maintenanceTypeLabel =new JLabel();
         maintenanceTypeLabel.setText("Maintenance Type:");
@@ -954,16 +1013,15 @@ public class ManageBusMaintenancePage extends JFrame {
 
                         String maintenanceDate=maintenanceDateYearTxt.getText()+"-"+maintenanceDateMonTxt.getText()+"-"+maintenanceDateDayTxt.getText();
                         String nextSch=nextSchDateYearTxt.getText()+"-"+nextSchDateMonTxt.getText()+"-"+nextSchDateDayTxt.getText();
-
-
+                        String bID=(String) busIDCombobox.getSelectedItem();
                         if(busIDCheckbox.isSelected())
                         {
-                            recTable.setValueAt(busIDTxt.getText(),i,1);
+                            recTable.setValueAt(bID,i,1);
 
                             String updateQuery="update BusMaintenance set BusID=? where BusMaintenanceID=?";
                             try {
                                 PreparedStatement pst=conn.prepareStatement(updateQuery);
-                                pst.setInt(1,Integer.parseInt(busIDTxt.getText()));
+                                pst.setInt(1,Integer.parseInt(bID));
                                 pst.setInt(2,Integer.parseInt(val));
                                 pst.executeUpdate();
 
@@ -1067,11 +1125,11 @@ public class ManageBusMaintenancePage extends JFrame {
                 if(busIDCheckbox.isSelected())
                 {
                     busIDLabel.setVisible(true);
-                    busIDTxt.setVisible(true);
+                    busIDCombobox.setVisible(true);
                 }
                 else{
                     busIDLabel.setVisible(false);
-                    busIDTxt.setVisible(false);
+                    busIDCombobox.setVisible(false);
                 }
             }
         });
@@ -1183,7 +1241,7 @@ public class ManageBusMaintenancePage extends JFrame {
         inputPanel.add(descriptionCheckbox);
         inputPanel.add(nextSchDateCheckbox);
         inputPanel.add(busIDLabel);
-        inputPanel.add(busIDTxt);
+        inputPanel.add(busIDCombobox);
         inputPanel.add(maintenanceTypeLabel);
         inputPanel.add(maintenanceTypeTxt);
         inputPanel.add(maintenanceDateLabel);

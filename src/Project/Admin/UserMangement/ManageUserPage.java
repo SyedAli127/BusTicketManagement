@@ -27,7 +27,7 @@ public class ManageUserPage extends JFrame {
 
     DefaultTableModel tableModel;
     JTable recTable;
-
+    Connection conn=Database.setConnection();
     public ManageUserPage() {
 
         JLabel label=new JLabel();
@@ -62,7 +62,7 @@ public class ManageUserPage extends JFrame {
 
         //Children of Booking Management
         DefaultMutableTreeNode add_booking=new DefaultMutableTreeNode("Add Booking");
-        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Booking");
+        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Orders");
         DefaultMutableTreeNode manage_pricing=new DefaultMutableTreeNode("Manage Pricing");
         DefaultMutableTreeNode view_seat=new DefaultMutableTreeNode("View Seat Occupancy");
         DefaultMutableTreeNode refund_manage=new DefaultMutableTreeNode("Refund Management");
@@ -159,7 +159,7 @@ public class ManageUserPage extends JFrame {
                             dispose();
                             break;
 
-                        case "View Booking":
+                        case "View Orders":
                             ViewBookingPage vbp=new ViewBookingPage();
                             dispose();
                             break;
@@ -253,6 +253,50 @@ public class ManageUserPage extends JFrame {
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                String val = customerIDTxt.getText();
+                boolean found = false;
+                String query = "select * from Customer where CusID=?";
+                try {
+                    PreparedStatement psmt = conn.prepareStatement(query);
+                    psmt.setInt(1, Integer.parseInt(val));
+                    ResultSet rs = psmt.executeQuery();
+                    while (rs.next())
+                    {
+                        tableModel.setRowCount(0);
+                        int cusID = rs.getInt("CusID");
+                        String firstName = rs.getString("FirstName");
+                        String lastName = rs.getString("LastName");
+                        String cnic = rs.getString("CNIC");
+                        String dob = rs.getString("DOB");
+                        String contact = rs.getString("ContactNo");
+                        String email = rs.getString("Email");
+                        String city = rs.getString("City");
+                        String address = rs.getString("Address");;
+                        String password = rs.getString("Password");
+                        String lastSeen = rs.getString("LastSeen");
+                        String accountStatus = rs.getString("AccountStatus");
+                        int len=6*address.length();
+                        if(len>180)
+                        {
+                            recTable.getColumnModel().getColumn(8).setPreferredWidth(len);
+                        }
+                        int emLen=6*email.length();
+                        if(emLen>130)
+                        {
+                            recTable.getColumnModel().getColumn(6).setPreferredWidth(emLen);
+                        }
+                        String[] row = {Integer.toString(cusID), firstName, lastName, cnic, dob, contact, email, city, address, password, lastSeen, accountStatus};
+                        tableModel.addRow(row);
+                    }
+
+                    found = true;
+
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+                if (!found) {
+                    JOptionPane.showMessageDialog(null, "Record with Customer ID " + val + " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                }
 
             }
         });
@@ -285,86 +329,68 @@ public class ManageUserPage extends JFrame {
         tabPanel.setBounds(240,190,600,350);
         tabPanel.setLayout(null);
 
+        String[]column={"Customer ID","First Name","Last Name","CNIC/ Passport","Date of Birth","Contact Number","Email","City","Address","Password","Last Seen","Account Status"};
 
-        //StringBuilder userDetails = new StringBuilder();
-
-        try{
-            String query = "SELECT * FROM Dummy1";
-            Connection connection = Database.setConnection();
-
-
-            String insertQuery = "INSERT INTO dummy1 (Name) VALUES ( ?)";
-            PreparedStatement pstmt = connection.prepareStatement(insertQuery);
-            pstmt.setString(1, "Hi");
-            pstmt.executeUpdate();
-
-            PreparedStatement statement = connection.prepareStatement(query);
-            ResultSet resultSet = statement.executeQuery();
-
-            while (resultSet.next()) {
-                /*
-                int customerId = resultSet.getInt("CustomerID");
-
-                String firstName = resultSet.getString("FirstName");
-                String lastName = resultSet.getString("LastName");
-                String phoneNumber = resultSet.getString("PhoneNumber");
-                String email = resultSet.getString("Email");
-
-
-                 */
-                // Append user details to the StringBuilder
-               /* userDetails.append("Customer ID: ").append(customerId).append("\n")
-                        .append("First Name: ").append(firstName).append("\n")
-                        .append("Last Name: ").append(lastName).append("\n")
-                        .append("Phone Number: ").append(phoneNumber).append("\n")
-                        .append("Email: ").append(email).append("\n")
-                        .append("----------------------------\n");
-
-                */
-
-
-
-
-                int SerialNo = resultSet.getInt("ID");
-                String Name = resultSet.getString("Name");
-                System.out.println(SerialNo+" "+Name);
-            }
-        } catch (SQLException e) {
-            
-            throw new RuntimeException(e);
-        }
-
-
-
-
-
-        String[][] data={ {"1","A","B","0312345687912","123456789012345","abc123aba45@gmail.com","31/12/2022","Malam Jabba","jhkaifjlkafjakfjalkjflkajflkjalkjfalkj","abc123av245","22/12/2024","Enable"}
-
-
-        };
-
-        String[]column={"Customer ID","First Name","Last Name","Phone No","CNIC/ Passport","Email","Date of Birth","City","Address","Password","Last Seen","Account Active"};
-
-        tableModel=new DefaultTableModel(data,column);
+        tableModel=new DefaultTableModel(column,0);
         recTable=new JTable(tableModel);
-        recTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // This ensures horizontal
+        recTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
+        recTable.getColumnModel().getColumn(0).setPreferredWidth(100);
         recTable.getColumnModel().getColumn(1).setPreferredWidth(100);
         recTable.getColumnModel().getColumn(2).setPreferredWidth(100);
-        recTable.getColumnModel().getColumn(3).setPreferredWidth(110);
-        recTable.getColumnModel().getColumn(4).setPreferredWidth(130);
-        recTable.getColumnModel().getColumn(5).setPreferredWidth(170);
-        recTable.getColumnModel().getColumn(6).setPreferredWidth(100);
-        recTable.getColumnModel().getColumn(7).setPreferredWidth(110);
+        recTable.getColumnModel().getColumn(3).setPreferredWidth(120);
+        recTable.getColumnModel().getColumn(4).setPreferredWidth(120);
+        recTable.getColumnModel().getColumn(5).setPreferredWidth(120);
+        recTable.getColumnModel().getColumn(6).setPreferredWidth(130);
+        recTable.getColumnModel().getColumn(7).setPreferredWidth(120);
         recTable.getColumnModel().getColumn(8).setPreferredWidth(180);
         recTable.getColumnModel().getColumn(9).setPreferredWidth(120);
         recTable.getColumnModel().getColumn(10).setPreferredWidth(120);
         recTable.getColumnModel().getColumn(11).setPreferredWidth(130);
 
+        String query="Select * from Customer";
+        try
+        {
+            PreparedStatement psmt=conn.prepareStatement(query);
+            ResultSet rs=psmt.executeQuery();
+            while (rs.next())
+            {
+                int cusID = rs.getInt("CusID");
+                String firstName = rs.getString("FirstName");
+                String lastName = rs.getString("LastName");
+                String cnic = rs.getString("CNIC");
+                String dob = rs.getString("DOB");
+                String contact = rs.getString("ContactNo");
+                String email = rs.getString("Email");
+                String city = rs.getString("City");
+                String address = rs.getString("Address");;
+                String password = rs.getString("Password");
+                String lastSeen = rs.getString("LastSeen");
+                String accountStatus = rs.getString("AccountStatus");
+                int len=6*address.length();
+                if(len>180)
+                {
+                    recTable.getColumnModel().getColumn(8).setPreferredWidth(len);
+                }
+                int emLen=6*email.length();
+                if(emLen>130)
+                {
+                    recTable.getColumnModel().getColumn(6).setPreferredWidth(emLen);
+                }
+                String[] row = {Integer.toString(cusID), firstName, lastName, cnic, dob, contact, email, city, address, password, lastSeen, accountStatus};
+                tableModel.addRow(row);
+            }
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeException(e);
+        }
+
+
         JScrollPane scrollPane=new JScrollPane(recTable);
         scrollPane.setBounds(1,1,600,350);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         tabPanel.add(scrollPane);
 
 
@@ -427,7 +453,18 @@ public class ManageUserPage extends JFrame {
                 for (int i = 0; i < tableModel.getRowCount(); i++)
                 {
                     if (tableModel.getValueAt(i, 0).equals(IDVal))
-                    { // Checking Reg number at index 4 & Bus ID at index 0
+                    {
+                        String delQuery="Delete from Customer where CusID=?";
+                        try
+                        {
+                            PreparedStatement psmt=conn.prepareStatement(delQuery);
+                            psmt.setInt(1,Integer.parseInt(IDVal));
+                            psmt.executeUpdate();
+                        }
+                        catch (SQLException ex)
+                        {
+                            throw new RuntimeException(ex);
+                        }
                         tableModel.removeRow(i);
                         found = true;
                         break;
@@ -470,7 +507,7 @@ public class ManageUserPage extends JFrame {
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(null);
         inputPanel.setBackground(Color.darkGray);
-        inputPanel.setPreferredSize(new Dimension(460, 750));
+        inputPanel.setPreferredSize(new Dimension(460, 680));
 
         JLabel editRecLabel =new JLabel();
         editRecLabel.setText("Edit Record");
@@ -488,31 +525,23 @@ public class ManageUserPage extends JFrame {
         JTextField customerIDTxt =new JTextField();
         customerIDTxt.setBounds(200,100,150,30);
 
-        JCheckBox phoneNoCheckbox =new JCheckBox("Phone Number");
-        phoneNoCheckbox.setBackground( Color.darkGray);
-        phoneNoCheckbox.setForeground(Color.orange);
-        phoneNoCheckbox.setBounds(30,200,110,30);
-        phoneNoCheckbox.setVisible(false);
-
-
-        JCheckBox cnicCheckbox =new JCheckBox("CNIC/Passport");
-        cnicCheckbox.setBackground( Color.darkGray);
-        cnicCheckbox.setForeground(Color.orange);
-        cnicCheckbox.setBounds(150,200,110,30);
-        cnicCheckbox.setVisible(false);
+        JCheckBox contactNoCheckbox =new JCheckBox("Contact Number");
+        contactNoCheckbox.setBackground( Color.darkGray);
+        contactNoCheckbox.setForeground(Color.orange);
+        contactNoCheckbox.setBounds(30,200,120,30);
+        contactNoCheckbox.setVisible(false);
 
         JCheckBox emailCheckbox =new JCheckBox("Email");
         emailCheckbox.setBackground( Color.darkGray);
         emailCheckbox.setForeground(Color.orange);
-        emailCheckbox.setBounds(270,200,60,30);
+        emailCheckbox.setBounds(150,200,60,30);
         emailCheckbox.setVisible(false);
 
-
-        JCheckBox dobCheckbox =new JCheckBox("Date of Birth");
-        dobCheckbox.setBackground( Color.darkGray);
-        dobCheckbox.setForeground(Color.orange);
-        dobCheckbox.setBounds(340,200,100,30);
-        dobCheckbox.setVisible(false);
+        JCheckBox passwordCheckbox =new JCheckBox("Password");
+        passwordCheckbox.setBackground( Color.darkGray);
+        passwordCheckbox.setForeground(Color.orange);
+        passwordCheckbox.setBounds(270,200,110,30);
+        passwordCheckbox.setVisible(false);
 
         JCheckBox cityCheckbox =new JCheckBox("City");
         cityCheckbox.setBackground( Color.darkGray);
@@ -526,118 +555,75 @@ public class ManageUserPage extends JFrame {
         addressCheckbox.setBounds(150,230,80,30);
         addressCheckbox.setVisible(false);
 
-        JCheckBox accountActiveCheckbox =new JCheckBox("Account Activity");
-        accountActiveCheckbox.setBackground( Color.darkGray);
-        accountActiveCheckbox.setForeground(Color.orange);
-        accountActiveCheckbox.setBounds(270,230,160,30);
-        accountActiveCheckbox.setVisible(false);
+        JCheckBox accountStatusCheckbox =new JCheckBox("Account Status");
+        accountStatusCheckbox.setBackground( Color.darkGray);
+        accountStatusCheckbox.setForeground(Color.orange);
+        accountStatusCheckbox.setBounds(270,230,160,30);
+        accountStatusCheckbox.setVisible(false);
 
-        JLabel phoneNoLabel=new JLabel("Phone Number:");
-        phoneNoLabel.setBounds(10,280,180,30);
-        phoneNoLabel.setForeground(Color.orange);
-        phoneNoLabel.setFont(new Font("Arial",Font.BOLD,20));
-        phoneNoLabel.setVisible(false);
+        JLabel contactNoLabel =new JLabel("Contact Number:");
+        contactNoLabel.setBounds(10,280,180,30);
+        contactNoLabel.setForeground(Color.orange);
+        contactNoLabel.setFont(new Font("Arial",Font.BOLD,20));
+        contactNoLabel.setVisible(false);
 
-        JTextField phoneNoTxt=new JTextField();
-        phoneNoTxt.setBounds(200,280,150,30);
-        phoneNoTxt.setVisible(false);
-
-        JLabel cnicLabel=new JLabel("CNIC/Passport:");
-        cnicLabel.setBounds(10,330,180,30);
-        cnicLabel.setForeground(Color.orange);
-        cnicLabel.setFont(new Font("Arial",Font.BOLD,20));
-        cnicLabel.setVisible(false);
-
-        JTextField cnicTxt=new JTextField();
-        cnicTxt.setBounds(200,330,150,30);
-        cnicTxt.setVisible(false);
+        JTextField contactNoTxt =new JTextField();
+        contactNoTxt.setBounds(200,280,150,30);
+        contactNoTxt.setVisible(false);
 
         JLabel emailLabel=new JLabel("Email:");
-        emailLabel.setBounds(10,380,180,30);
+        emailLabel.setBounds(10,330,180,30);
         emailLabel.setForeground(Color.orange);
         emailLabel.setFont(new Font("Arial",Font.BOLD,20));
         emailLabel.setVisible(false);
 
         JTextField emailTxt=new JTextField();
-        emailTxt.setBounds(200,380,150,30);
+        emailTxt.setBounds(200,330,150,30);
         emailTxt.setVisible(false);
 
-        JLabel dobLabel=new JLabel("Date of Birth:");
-        dobLabel.setBounds(10,430,180,30);
-        dobLabel.setForeground(Color.orange);
-        dobLabel.setFont(new Font("Arial",Font.BOLD,20));
-        dobLabel.setVisible(false);
+        JLabel passwordLabel =new JLabel("Password:");
+        passwordLabel.setBounds(10,380,180,30);
+        passwordLabel.setForeground(Color.orange);
+        passwordLabel.setFont(new Font("Arial",Font.BOLD,20));
+        passwordLabel.setVisible(false);
 
-        JLabel dobDayLabel=new JLabel("(Day)");
-        dobDayLabel.setBounds(200,455,50,30);
-        dobDayLabel.setForeground(Color.orange);
-        dobDayLabel.setFont(new Font("Arial",Font.BOLD,11));
-        dobDayLabel.setVisible(false);
-
-        JTextField dobDayTxt=new JTextField();
-        dobDayTxt.setBounds(200,430,40,30);
-        dobDayTxt.setVisible(false);
-
-        JLabel dobMonLabel=new JLabel("(Month)");
-        dobMonLabel.setBounds(260,455,50,30);
-        dobMonLabel.setForeground(Color.orange);
-        dobMonLabel.setFont(new Font("Arial",Font.BOLD,11));
-        dobMonLabel.setVisible(false);
-
-        JTextField dobMonTxt=new JTextField();
-        dobMonTxt.setBounds(260,430,40,30);
-        dobMonTxt.setVisible(false);
-
-        JLabel dobYearLabel=new JLabel("(Year)");
-        dobYearLabel.setBounds(320,455,50,30);
-        dobYearLabel.setForeground(Color.orange);
-        dobYearLabel.setFont(new Font("Arial",Font.BOLD,11));
-        dobYearLabel.setVisible(false);
-
-        JTextField dobYearTxt=new JTextField();
-        dobYearTxt.setBounds(320,430,40,30);
-        dobYearTxt.setVisible(false);
+        JTextField passwordTxt =new JTextField();
+        passwordTxt.setBounds(200,380,150,30);
+        passwordTxt.setVisible(false);
 
 
         JLabel cityLabel=new JLabel("City:");
-        cityLabel.setBounds(10,490,180,30);
+        cityLabel.setBounds(10,430,180,30);
         cityLabel.setForeground(Color.orange);
         cityLabel.setFont(new Font("Arial",Font.BOLD,20));
         cityLabel.setVisible(false);
 
         JTextField cityTxt=new JTextField();
-        cityTxt.setBounds(200,490,150,30);
+        cityTxt.setBounds(200,430,150,30);
         cityTxt.setVisible(false);
 
-        JLabel accountActiveLabel =new JLabel("Account Activity:");
-        accountActiveLabel.setBounds(10,540,180,30);
-        accountActiveLabel.setFont(new Font("Arial",Font.BOLD,15));
-        accountActiveLabel.setForeground(Color.orange);
-        accountActiveLabel.setVisible(false);
-
-        JRadioButton enRadio=new JRadioButton("Enable");
-        JRadioButton disRadio=new JRadioButton("Disable");
-
-        enRadio.setBounds(200,540,80,30);
-        disRadio.setBounds(290,540,80,30);
-
-        enRadio.setVisible(false);
-        disRadio.setVisible(false);
-
-        ButtonGroup group =new ButtonGroup();
-        group.add(enRadio);
-        group.add(disRadio);
-
         JLabel addressLabel=new JLabel("Address:");
-        addressLabel.setBounds(10,580,180,30);
+        addressLabel.setBounds(10,480,180,30);
         addressLabel.setForeground(Color.orange);
         addressLabel.setFont(new Font("Arial",Font.BOLD,20));
         addressLabel.setVisible(false);
 
-        JTextArea addressTxt=new JTextArea();
-        addressTxt.setBounds(200,580,150,90);
+        JTextField addressTxt=new JTextField();
+        addressTxt.setBounds(200,480,150,30);
         addressTxt.setVisible(false);
 
+        JLabel accountStatusLabel =new JLabel("Account Status:");
+        accountStatusLabel.setBounds(10,530,180,30);
+        accountStatusLabel.setFont(new Font("Arial",Font.BOLD,20));
+        accountStatusLabel.setForeground(Color.orange);
+        accountStatusLabel.setVisible(false);
+
+        String[] stat={"-","Active","Not Active"};
+
+        JComboBox statusCombobox=new JComboBox<>(stat);
+        statusCombobox.setBounds(200,530,150,35);
+        statusCombobox.setBackground(Color.orange);
+        statusCombobox.setVisible(false);
 
 
         JButton searchButton=new JButton("Search");
@@ -653,13 +639,12 @@ public class ManageUserPage extends JFrame {
                 {
                     if (tableModel.getValueAt(i, 0).equals(val))
                     {
-                        phoneNoCheckbox.setVisible(true);
-                        cnicCheckbox.setVisible(true);
+                        contactNoCheckbox.setVisible(true);
+                        passwordCheckbox.setVisible(true);
                         emailCheckbox.setVisible(true);
-                        dobCheckbox.setVisible(true);
                         cityCheckbox.setVisible(true);
                         addressCheckbox.setVisible(true);
-                        accountActiveCheckbox.setVisible(true);
+                        accountStatusCheckbox.setVisible(true);
 
 
                         found = true;
@@ -668,70 +653,137 @@ public class ManageUserPage extends JFrame {
                 }
                 if (!found)
                 {
-                    JOptionPane.showMessageDialog(editDialog, "Record with Route ID " + val + " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(editDialog, "Record with Customer ID " + val + " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
                 }
             }
         });
 
 
         JButton editButton=new JButton("Edit");
-        editButton.setBounds(130,680,100,30);
+        editButton.setBounds(130,600,100,30);
         editButton.setBackground(Color.cyan);
         editButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String IDVal= customerIDTxt.getText();
-                boolean found=false;
-                String phoneNo=phoneNoTxt.getText();
-                String cnic=cnicTxt.getText();
-                String email=emailTxt.getText();
-                String dob=dobDayTxt.getText()+"/"+dobMonTxt.getText()+"/"+dobYearTxt.getText();
-                String city=cityTxt.getText();
-                String address=addressTxt.getText();
-                String en=enRadio.getText();
-                String dis=disRadio.getText();
+
+                String stat=(String) statusCombobox.getSelectedItem();
 
                 for(int i=0;i< tableModel.getRowCount();i++)
                 {
                     if(recTable.getValueAt(i,0).equals(IDVal))
                     {
-                        if(phoneNoCheckbox.isSelected())
+                        if(contactNoCheckbox.isSelected())
                         {
-                            recTable.setValueAt(phoneNo,i,3);
+                            String phoneNo= contactNoTxt.getText();
+                            String editQuery="Update Customer set ContactNo=? where CusID=?";
+                            recTable.setValueAt(phoneNo,i,5);
+                            try
+                            {
+                                PreparedStatement pst=conn.prepareStatement(editQuery);
+                                pst.setString(1,phoneNo);
+                                pst.setInt(2,Integer.parseInt(IDVal));
+                                pst.executeUpdate();
 
-                        }
-                        if(cnicCheckbox.isSelected())
-                        {
-                            recTable.setValueAt(cnic,i,4);
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
+
                         }
                         if(emailCheckbox.isSelected())
                         {
-                            recTable.setValueAt(email,i,5);
+                            String email=emailTxt.getText();
+                            int emLen=6*email.length();
+                            if(emLen>130)
+                            {
+                                recTable.getColumnModel().getColumn(6).setPreferredWidth(emLen);
+                            }
+                            String editQuery="Update Customer set Email=? where CusID=?";
+                            recTable.setValueAt(email,i,6);
+                            try {
+                                PreparedStatement pst=conn.prepareStatement(editQuery);
+                                pst.setString(1,email);
+                                pst.setInt(2,Integer.parseInt(IDVal));
+                                pst.executeUpdate();
+
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
                         }
-                        if(dobCheckbox.isSelected())
+                        if(passwordCheckbox.isSelected())
                         {
-                            recTable.setValueAt(dob,i,6);
+                            String pw= passwordTxt.getText();
+                            String editQuery="Update Customer set Password=? where CusID=?";
+                            recTable.setValueAt(pw,i,9);
+                            try {
+                                PreparedStatement pst=conn.prepareStatement(editQuery);
+                                pst.setString(1,pw);
+                                pst.setInt(2,Integer.parseInt(IDVal));
+                                pst.executeUpdate();
+
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
                         }
                         if(cityCheckbox.isSelected())
                         {
+                            String city=cityTxt.getText();
+                            String editQuery="Update Customer set City=? where CusID=?";
                             recTable.setValueAt(city,i,7);
+                            try {
+                                PreparedStatement pst=conn.prepareStatement(editQuery);
+                                pst.setString(1,city);
+                                pst.setInt(2,Integer.parseInt(IDVal));
+                                pst.executeUpdate();
+
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
                         }
                         if(addressCheckbox.isSelected())
                         {
+                            String address=addressTxt.getText();
+                            String editQuery="Update Customer set Address=? where CusID=?";
+                            int len=6*address.length();
+                            if(len>180)
+                            {
+                                recTable.getColumnModel().getColumn(8).setPreferredWidth(len);
+                            }
                             recTable.setValueAt(address,i,8);
+                            try {
+                                PreparedStatement pst=conn.prepareStatement(editQuery);
+                                pst.setString(1,address);
+                                pst.setInt(2,Integer.parseInt(IDVal));
+                                pst.executeUpdate();
+
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
 
                         }
-                        if(accountActiveCheckbox.isSelected())
+                        if(accountStatusCheckbox.isSelected())
                         {
-                            if(enRadio.isSelected())
-                            {
-                                recTable.setValueAt(en,i,11);
-                            }
-                            else if(disRadio.isSelected())
-                            {
-                                recTable.setValueAt(dis,i,11);
-                            }
+                            String editQuery="Update Customer set AccountStatus=? where CusID=?";
+                            recTable.setValueAt(stat,i,11);
+                            try {
+                                PreparedStatement pst=conn.prepareStatement(editQuery);
+                                pst.setString(1,stat);
+                                pst.setInt(2,Integer.parseInt(IDVal));
+                                pst.executeUpdate();
 
+                            }
+                            catch (SQLException ex)
+                            {
+                                throw new RuntimeException(ex);
+                            }
                         }
 
                         editDialog.dispose();
@@ -742,32 +794,32 @@ public class ManageUserPage extends JFrame {
             }
         });
 
-        phoneNoCheckbox.addActionListener(new ActionListener() {
+        contactNoCheckbox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (phoneNoCheckbox.isSelected())
+                if (contactNoCheckbox.isSelected())
                 {
-                    phoneNoLabel.setVisible(true);
-                    phoneNoTxt.setVisible(true);
+                    contactNoLabel.setVisible(true);
+                    contactNoTxt.setVisible(true);
                 }
                 else {
-                    phoneNoLabel.setVisible(false);
-                    phoneNoTxt.setVisible(false);
+                    contactNoLabel.setVisible(false);
+                    contactNoTxt.setVisible(false);
                 }
             }
         });
 
-        cnicCheckbox.addActionListener(new ActionListener() {
+        passwordCheckbox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(cnicCheckbox.isSelected())
+                if(passwordCheckbox.isSelected())
                 {
-                    cnicLabel.setVisible(true);
-                    cnicTxt.setVisible(true);
+                    passwordLabel.setVisible(true);
+                    passwordTxt.setVisible(true);
                 }
                 else{
-                    cnicLabel.setVisible(false);
-                    cnicTxt.setVisible(false);
+                    passwordLabel.setVisible(false);
+                    passwordTxt.setVisible(false);
                 }
             }
         });
@@ -783,30 +835,6 @@ public class ManageUserPage extends JFrame {
                 else{
                     emailLabel.setVisible(false);
                     emailTxt.setVisible(false);
-                }
-            }
-        });
-        dobCheckbox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(dobCheckbox.isSelected())
-                {
-                    dobLabel.setVisible(true);
-                    dobDayLabel.setVisible(true);
-                    dobDayTxt.setVisible(true);
-                    dobMonLabel.setVisible(true);
-                    dobMonTxt.setVisible(true);
-                    dobYearLabel.setVisible(true);
-                    dobYearTxt.setVisible(true);
-                }
-                else{
-                    dobLabel.setVisible(false);
-                    dobDayLabel.setVisible(false);
-                    dobDayTxt.setVisible(false);
-                    dobMonLabel.setVisible(false);
-                    dobMonTxt.setVisible(false);
-                    dobYearLabel.setVisible(false);
-                    dobYearTxt.setVisible(false);
                 }
             }
         });
@@ -841,19 +869,17 @@ public class ManageUserPage extends JFrame {
             }
         });
 
-        accountActiveCheckbox.addActionListener(new ActionListener() {
+        accountStatusCheckbox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(accountActiveCheckbox.isSelected())
+                if(accountStatusCheckbox.isSelected())
                 {
-                    accountActiveLabel.setVisible(true);
-                    enRadio.setVisible(true);
-                    disRadio.setVisible(true);
+                    accountStatusLabel.setVisible(true);
+                    statusCombobox.setVisible(true);
                 }
                 else{
-                    accountActiveLabel.setVisible(false);
-                    enRadio.setVisible(false);
-                    disRadio.setVisible(false);
+                    accountStatusLabel.setVisible(false);
+                    statusCombobox.setVisible(false);
                 }
             }
         });
@@ -864,34 +890,26 @@ public class ManageUserPage extends JFrame {
         inputPanel.add(customerIDLabel);
         inputPanel.add(customerIDTxt);
         inputPanel.add(searchButton);
-        inputPanel.add(phoneNoCheckbox);
-        inputPanel.add(cnicCheckbox);
+        inputPanel.add(contactNoCheckbox);
         inputPanel.add(emailCheckbox);
-        inputPanel.add(dobCheckbox);
+        inputPanel.add(passwordCheckbox);
+
         inputPanel.add(cityCheckbox);
         inputPanel.add(addressCheckbox);
-        inputPanel.add(accountActiveCheckbox);
-        inputPanel.add(phoneNoLabel);
-        inputPanel.add(phoneNoTxt);
-        inputPanel.add(cnicLabel);
-        inputPanel.add(cnicTxt);
+        inputPanel.add(accountStatusCheckbox);
+        inputPanel.add(contactNoLabel);
+        inputPanel.add(contactNoTxt);
+        inputPanel.add(passwordLabel);
+        inputPanel.add(passwordTxt);
         inputPanel.add(emailLabel);
         inputPanel.add(emailTxt);
-        inputPanel.add(dobLabel);
         inputPanel.add(cityLabel);
         inputPanel.add(cityTxt);
         inputPanel.add(addressLabel);
         inputPanel.add(addressTxt);
-        inputPanel.add(accountActiveLabel);
-        inputPanel.add(enRadio);
-        inputPanel.add(disRadio);
+        inputPanel.add(accountStatusLabel);
+        inputPanel.add(statusCombobox);
         inputPanel.add(editButton);
-        inputPanel.add(dobDayLabel);
-        inputPanel.add(dobDayTxt);
-        inputPanel.add(dobMonLabel);
-        inputPanel.add(dobMonTxt);
-        inputPanel.add(dobYearLabel);
-        inputPanel.add(dobYearTxt);
 
         scrollPane.setViewportView(inputPanel);
         editDialog.getContentPane().add(scrollPane);

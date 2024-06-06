@@ -1,6 +1,8 @@
 package Project.Customer.UserProfile;
 
 import Project.Customer.CustomerMenu;
+import Project.Customer.RefundPage;
+import Project.Database;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,10 +10,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class SigninPage extends JFrame {
-
-    public SigninPage() {
+    String cusID;
+    Connection connection= Database.setConnection();
+    public SigninPage(String cusID) {
+        this.cusID = cusID;
 
         JLabel label=new JLabel();
         label.setText("Sign In");
@@ -48,7 +56,7 @@ public class SigninPage extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
-                RegisterPage rp=new RegisterPage();
+                RegisterPage rp=new RegisterPage(cusID);
                 dispose();
             }
             @Override
@@ -71,7 +79,7 @@ public class SigninPage extends JFrame {
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                CustomerMenu cm=new CustomerMenu();
+                CustomerMenu cm=new CustomerMenu(cusID);
                 dispose();
             }
         });
@@ -84,15 +92,45 @@ public class SigninPage extends JFrame {
         signInButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //HAs to make a pop-up message
-                CustomerMenu cm=new CustomerMenu();
-                dispose();
+                String email=emailTxt.getText();
+                String password=passwordTxt.getText();
+                String query="Select cusID from Customer where Email=? and Password=? and AccountStatus='Active'";
+                boolean found=false;
+                String cusID="";
+                try
+                {
+                    PreparedStatement psmt=connection.prepareStatement(query);
+                    psmt.setString(1,email);
+                    psmt.setString(2,password);
+                    ResultSet rs=psmt.executeQuery();
+                    if (rs.next()) {
+                        found = true;
+                        cusID = Integer.toString(rs.getInt("cusID"));
+                    }
+
+                }
+                catch (SQLException ex)
+                {
+                    throw new RuntimeException(ex);
+                }
+                if(!found)
+                {
+                    JOptionPane.showMessageDialog(null, "Sign in Failed!", "Error", JOptionPane.ERROR_MESSAGE);
+
+                }else {
+                    JOptionPane.showMessageDialog(null, "Sign in successful!", "Message", JOptionPane.INFORMATION_MESSAGE);
+                    CustomerMenu cm=new CustomerMenu(cusID);
+                    System.out.println(cusID);
+                    dispose();
+                }
+
+
             }
         });
 
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(600,600);
+        setSize(600,500);
         setTitle("Sign-in Page");
         setVisible(true);
         setLocationRelativeTo(null);

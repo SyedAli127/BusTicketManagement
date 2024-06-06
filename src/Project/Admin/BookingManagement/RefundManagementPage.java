@@ -10,11 +10,10 @@ import Project.Admin.UserMangement.ManageDriverPage;
 import Project.Admin.UserMangement.ManageManagerPage;
 import Project.Admin.UserMangement.ManageUserPage;
 import Project.Admin.ViewFeedbackPage;
+import Project.Database;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
@@ -22,13 +21,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class RefundManagementPage extends JFrame{
 
     DefaultTableModel tableModel;
     JTable recTable;
+    Connection connection= Database.setConnection();
 
     public RefundManagementPage() {
 
@@ -65,7 +67,7 @@ public class RefundManagementPage extends JFrame{
 
         //Children of Booking Management
         DefaultMutableTreeNode add_booking=new DefaultMutableTreeNode("Add Booking");
-        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Booking");
+        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Orders");
         DefaultMutableTreeNode manage_pricing=new DefaultMutableTreeNode("Manage Pricing");
         DefaultMutableTreeNode view_seat=new DefaultMutableTreeNode("View Seat Occupancy");
         DefaultMutableTreeNode refund_manage=new DefaultMutableTreeNode("Refund Management");
@@ -162,7 +164,7 @@ public class RefundManagementPage extends JFrame{
                             dispose();
                             break;
 
-                        case "View Booking":
+                        case "View Orders":
                             ViewBookingPage vbp=new ViewBookingPage();
                             dispose();
                             break;
@@ -255,6 +257,43 @@ public class RefundManagementPage extends JFrame{
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                String rID = refundIDTxt.getText();
+                boolean found = false;
+
+                String query = "select r.refundID,r.orderID,r.CusID,r.reason,r.additionalNote,r.decision,cus.FirstName,cus.LastName,cus.Email,d.orderDate from Refund r " +
+                        "join Customer cus on r.cusID=cus.CusID join Orders d on r.orderID=d.orderID" +
+                        " where RefundID=?";
+                try {
+
+                    PreparedStatement pst = connection.prepareStatement(query);
+                    pst.setInt(1, Integer.parseInt(rID));
+                    ResultSet rs = pst.executeQuery();
+                    while (rs.next()) {
+
+                        tableModel.setRowCount(0);
+                        int refundID=rs.getInt("RefundID");
+                        int orderID=rs.getInt("OrderID");
+                        int customerID=rs.getInt("CusID");
+                        String firstName=rs.getString("FirstName");
+                        String lastName=rs.getString("LastName");
+                        String email=rs.getString("Email");
+                        String bookingDate=rs.getString("OrderDate");
+                        String reason=rs.getString("Reason");
+                        String additionalNote=rs.getString("AdditionalNote");
+                        String decision=rs.getString("Decision");
+                        String[] data={Integer.toString(refundID),Integer.toString(orderID),Integer.toString(customerID),firstName,lastName,email,bookingDate,reason,additionalNote,decision};
+                        tableModel.addRow(data);
+                        found = true;
+
+                    }
+
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+
+                if (!found) {
+                    JOptionPane.showMessageDialog(null, "Record with Refund ID " + rID + " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                }
 
             }
         });
@@ -287,56 +326,46 @@ public class RefundManagementPage extends JFrame{
         tabPanel.setBounds(240,220,600,350);
         tabPanel.setLayout(null);
 
-        String[][] data={
-                {"1","5","X","Y","5","abc#abc","22-22-22","xyz","","Accept"},
-                {"3","2","C","D","9","abc#abc","22-22-22","efg","","Decline"},
-                {"2","9","A","B","2","abc#abc","22-22-22","abc","","Accept"}
-        };
+        String[]column={"Refund ID","Order ID","Customer ID","First Name","Last Name","Email","Order Date","Reason","Additional Note","Decision"};
 
-        String[]column={"Refund ID","CusID","First Name","Last Name","OrderID","Email","Booking Date","Reason","Additional Note","Decision"};
-
-        tableModel=new DefaultTableModel(data,column);
+        tableModel=new DefaultTableModel(column,0);
         recTable=new JTable(tableModel);
         recTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // This ensures horizontal
 
-        recTable.getColumnModel().getColumn(0).setPreferredWidth(90);
-        recTable.getColumnModel().getColumn(1).setPreferredWidth(120);
-        recTable.getColumnModel().getColumn(2).setPreferredWidth(120);
-        recTable.getColumnModel().getColumn(3).setPreferredWidth(90);
-        recTable.getColumnModel().getColumn(4).setPreferredWidth(150);
+        recTable.getColumnModel().getColumn(0).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(1).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(2).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(3).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(4).setPreferredWidth(100);
         recTable.getColumnModel().getColumn(5).setPreferredWidth(130);
         recTable.getColumnModel().getColumn(6).setPreferredWidth(180);
-        recTable.getColumnModel().getColumn(7).setPreferredWidth(250);
-        recTable.getColumnModel().getColumn(8).setPreferredWidth(90);
+        recTable.getColumnModel().getColumn(7).setPreferredWidth(150);
+        recTable.getColumnModel().getColumn(8).setPreferredWidth(150);
+        recTable.getColumnModel().getColumn(8).setPreferredWidth(100);
 
-
-        JLabel sortbyLabel=new JLabel("(Sort By)");
-        sortbyLabel.setBounds(470,140,50,30);
-        sortbyLabel.setFont(new Font("Arial",Font.PLAIN,12));
-        sortbyLabel.setForeground(Color.orange);
-
-
-        String[] sortCombo={"-","By Refund ID(Ascending)","By Refund ID(Descending)"};
-        JComboBox sortComboBox=new JComboBox<>(sortCombo);
-        sortComboBox.setBounds(470,170,180,30);
-
-        sortComboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String sort=(String) sortComboBox.getSelectedItem();
-                switch (sort)
-                {
-                    case "By Refund ID(Ascending)":
-                        refundIDAsc();
-                        break;
-
-                    case "By Refund ID(Descending)":
-                        refundIDDsc();
-                        break;
-                }
-
+        String query="select r.refundID,r.orderID,r.CusID,r.reason,r.additionalNote,r.decision,cus.FirstName,cus.LastName,cus.Email,d.orderDate from" +
+                " Refund r join Customer cus on r.cusID=cus.CusID join Orders d on r.orderID=d.orderID";
+        try {
+            PreparedStatement psmt=connection.prepareStatement(query);
+            ResultSet rs=psmt.executeQuery();
+            while(rs.next()){
+                int refundID=rs.getInt("RefundID");
+                int orderID=rs.getInt("OrderID");
+                int customerID=rs.getInt("CusID");
+                String firstName=rs.getString("FirstName");
+                String lastName=rs.getString("LastName");
+                String email=rs.getString("Email");
+                String bookingDate=rs.getString("OrderDate");
+                String reason=rs.getString("Reason");
+                String additionalNote=rs.getString("AdditionalNote");
+                String decision=rs.getString("Decision");
+                String[] data={Integer.toString(refundID),Integer.toString(orderID),Integer.toString(customerID),firstName,lastName,email,bookingDate,reason,additionalNote,decision};
+                tableModel.addRow(data);
             }
-        });
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
 
         JScrollPane scrollPane=new JScrollPane(recTable);
         scrollPane.setBounds(1,1,600,350);
@@ -353,7 +382,6 @@ public class RefundManagementPage extends JFrame{
         setResizable(false);
         setVisible(true);
 
-
         add(label);
         add(menuPanel);
         add(refundIDLabel);
@@ -362,12 +390,6 @@ public class RefundManagementPage extends JFrame{
         add(removeButton);
         add(editButton);
         add(tabPanel);
-        add(sortbyLabel);
-        add(sortComboBox);
-
-
-
-
 
         setTitle("Manage Refund Page");
         setLayout(null);
@@ -383,25 +405,6 @@ public class RefundManagementPage extends JFrame{
         add(menuPanel);
 
 
-    }
-    public void refundIDAsc(){
-        TableRowSorter<TableModel> sorter = new TableRowSorter<>(tableModel);
-        recTable.setRowSorter(sorter);
-        List<RowSorter.SortKey> sortKeys = new ArrayList<>();
-        int columnIndexToSort = 0;
-        sortKeys.add(new RowSorter.SortKey(columnIndexToSort, SortOrder.ASCENDING));
-        sorter.setSortKeys(sortKeys);
-        sorter.sort();
-    }
-
-    public void refundIDDsc(){
-        TableRowSorter<TableModel> sorter = new TableRowSorter<>(tableModel);
-        recTable.setRowSorter(sorter);
-        List<RowSorter.SortKey> sortKeys = new ArrayList<>();
-        int columnIndexToSort = 0;
-        sortKeys.add(new RowSorter.SortKey(columnIndexToSort, SortOrder.DESCENDING));
-        sorter.setSortKeys(sortKeys);
-        sorter.sort();
     }
 
     public void removeRecord()
@@ -444,6 +447,14 @@ public class RefundManagementPage extends JFrame{
                 {
                     if (tableModel.getValueAt(i, 0).equals(IDVal))
                     {
+                        String delQuery="delete from Refund where RefundID=?";
+                        try {
+                            PreparedStatement pst=connection.prepareStatement(delQuery);
+                            pst.setString(1,IDVal);
+                            pst.executeUpdate();
+                        } catch (SQLException ex) {
+                            throw new RuntimeException(ex);
+                        }
                         tableModel.removeRow(i);
                         found = true;
                         break;
@@ -472,7 +483,109 @@ public class RefundManagementPage extends JFrame{
 
     public void editRecord()
     {
+        JDialog editDialog = new JDialog(this, "Edit Record", true);
+        editDialog.setLayout(null);
+        editDialog.getContentPane().setBackground(Color.darkGray);
+        editDialog.setSize(400, 550);
+        editDialog.setLocationRelativeTo(null);
+        editDialog.setResizable(false);
 
+
+        JLabel editRecLabel =new JLabel();
+        editRecLabel.setText("Edit Record");
+        editRecLabel.setFont(new Font("Arial",Font.BOLD,22));
+        editRecLabel.setForeground(Color.orange);
+        editRecLabel.setBounds(100, 30,240,30);
+
+
+        JLabel refundIDLabel =new JLabel();
+        refundIDLabel.setText("Refund ID:");
+        refundIDLabel.setBounds(40,100,180,30);
+        refundIDLabel.setFont(new Font("Arial",Font.BOLD,20));
+        refundIDLabel.setForeground(Color.orange);
+
+        JTextField refundIDTxt =new JTextField();
+        refundIDTxt.setBounds(180,100,150,30);
+
+        JLabel decisionLabel =new JLabel();
+        decisionLabel.setText("Decision:");
+        decisionLabel.setBounds(40,220,180,30);
+        decisionLabel.setFont(new Font("Arial",Font.BOLD,20));
+        decisionLabel.setForeground(Color.orange);
+        decisionLabel.setVisible(false);
+
+        String[] dec={"-","Accepted","Declined"};
+        JComboBox decisionCombobox =new JComboBox<>(dec);
+        decisionCombobox.setBounds(180,220,150,30);
+        decisionCombobox.setVisible(false);
+
+        JButton editButton=new JButton("Edit");
+        editButton.setBounds(130,270,100,30);
+        editButton.setBackground(Color.cyan);
+        editButton.setVisible(false);
+
+        JButton searchButton=new JButton("Search");
+        searchButton.setBounds(130,150,100,30);
+        searchButton.setBackground(Color.cyan);
+        searchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                String IDVal = refundIDTxt.getText();
+                boolean found=false;
+                for (int i = 0; i < tableModel.getRowCount(); i++)
+                {
+                    if (tableModel.getValueAt(i, 0).equals(IDVal))
+                    {
+                        decisionLabel.setVisible(true);
+                        decisionCombobox.setVisible(true);
+                        editButton.setVisible(true);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    JOptionPane.showMessageDialog(editDialog, "Record with Refund ID " + IDVal +" not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        });
+
+
+        editButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String val=refundIDTxt.getText();
+                String decision=(String)decisionCombobox.getSelectedItem();
+                for (int i = 0; i < tableModel.getRowCount(); i++)
+                {
+                    if (tableModel.getValueAt(i, 0).equals(val)) {
+                        String editQuery = "update Refund set Decision=? where RefundID=?";
+                        try {
+                            PreparedStatement pst = connection.prepareStatement(editQuery);
+                            pst.setString(1, decision);
+                            pst.setInt(2, Integer.parseInt(val));
+                            pst.executeUpdate();
+                            recTable.setValueAt(decision,i,9);
+                        } catch (SQLException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                        editDialog.dispose();
+                        break;
+                    }
+                }
+
+            }
+        });
+
+        editDialog.add(editRecLabel);
+        editDialog.add(refundIDLabel);
+        editDialog.add(refundIDTxt);
+        editDialog.add(decisionLabel);
+        editDialog.add(decisionCombobox);
+        editDialog.add(searchButton);
+        editDialog.add(editButton);
+
+        editDialog.setVisible(true);
     }
 
 

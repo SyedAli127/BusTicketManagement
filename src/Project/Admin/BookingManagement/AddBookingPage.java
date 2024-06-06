@@ -66,7 +66,7 @@ public class AddBookingPage extends JFrame{
 
         //Children of Booking Management
         DefaultMutableTreeNode add_booking=new DefaultMutableTreeNode("Add Booking");
-        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Booking");
+        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Orders");
         DefaultMutableTreeNode manage_pricing=new DefaultMutableTreeNode("Manage Pricing");
         DefaultMutableTreeNode view_seat=new DefaultMutableTreeNode("View Seat Occupancy");
         DefaultMutableTreeNode refund_manage=new DefaultMutableTreeNode("Refund Management");
@@ -163,7 +163,7 @@ public class AddBookingPage extends JFrame{
                             dispose();
                             break;
 
-                        case "View Booking":
+                        case "View Orders":
                             ViewBookingPage vbp=new ViewBookingPage();
                             dispose();
                             break;
@@ -260,7 +260,7 @@ public class AddBookingPage extends JFrame{
             {
                 String id=bookIDTxt.getText();
                 boolean found=false;
-                String query="Select * from Booking where BookID=?";
+                String query="Select * from Booking where BookID=? order by BookID";
                 try {
                     PreparedStatement pst=conn.prepareStatement(query);
                     pst.setInt(1,Integer.parseInt(id));
@@ -344,29 +344,9 @@ public class AddBookingPage extends JFrame{
         recTable.getColumnModel().getColumn(4).setPreferredWidth(100);//Price ID
         recTable.getColumnModel().getColumn(5).setPreferredWidth(100);//Date
         recTable.getColumnModel().getColumn(6).setPreferredWidth(100);//Booking Status
-        /*recTable.getColumnModel().getColumn(7).setPreferredWidth(100);//Stop 4
-        recTable.getColumnModel().getColumn(8).setPreferredWidth(100);//Stop 5
-        recTable.getColumnModel().getColumn(9).setPreferredWidth(100);//Travel KM
-        recTable.getColumnModel().getColumn(10).setPreferredWidth(100);//Time Taken
-        recTable.getColumnModel().getColumn(11).setPreferredWidth(100);//Bus ID
-        recTable.getColumnModel().getColumn(12).setPreferredWidth(100);//Bus Company
-        recTable.getColumnModel().getColumn(13).setPreferredWidth(100);//Bus Name
-        recTable.getColumnModel().getColumn(14).setPreferredWidth(100);//Model
-        recTable.getColumnModel().getColumn(15).setPreferredWidth(130);//Registration Number
-        recTable.getColumnModel().getColumn(16).setPreferredWidth(130);//Chassis Number
-        recTable.getColumnModel().getColumn(17).setPreferredWidth(100);//Economy Seats
-        recTable.getColumnModel().getColumn(18).setPreferredWidth(100);//Luxury Seats
-        recTable.getColumnModel().getColumn(19).setPreferredWidth(110);//First-Class Seats
-        recTable.getColumnModel().getColumn(20).setPreferredWidth(100);//Total Seats
-        recTable.getColumnModel().getColumn(21).setPreferredWidth(100);//Driver ID
-        recTable.getColumnModel().getColumn(22).setPreferredWidth(100);//Driver Name
-        recTable.getColumnModel().getColumn(23).setPreferredWidth(130);//License Number
-        recTable.getColumnModel().getColumn(24).setPreferredWidth(130);//Contact Number
-        recTable.getColumnModel().getColumn(25).setPreferredWidth(130);//CNIC Number
-        recTable.getColumnModel().getColumn(26).setPreferredWidth(100);//Date
-        recTable.getColumnModel().getColumn(27).setPreferredWidth(100);//Time*/
 
-        String query="Select * from Booking";
+
+        String query="Select * from Booking order by BookID";
         try
         {
             PreparedStatement pst=conn.prepareStatement(query);

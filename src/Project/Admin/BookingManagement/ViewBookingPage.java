@@ -10,18 +10,29 @@ import Project.Admin.UserMangement.ManageDriverPage;
 import Project.Admin.UserMangement.ManageManagerPage;
 import Project.Admin.UserMangement.ManageUserPage;
 import Project.Admin.ViewFeedbackPage;
+import Project.Database;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class ViewBookingPage extends JFrame {
+    DefaultTableModel tableModel;
+    JTable recTable;
+    Connection conn = Database.setConnection();
     public ViewBookingPage() {
         JLabel label=new JLabel();
-        label.setText("View Bookings");
+        label.setText("View Orders");
         label.setBounds(450,20,250,50);
         label.setFont(new Font("Arial",Font.BOLD,25));
         label.setForeground(Color.orange);
@@ -53,7 +64,7 @@ public class ViewBookingPage extends JFrame {
 
         //Children of Booking Management
         DefaultMutableTreeNode add_booking=new DefaultMutableTreeNode("Add Booking");
-        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Booking");
+        DefaultMutableTreeNode view_booking=new DefaultMutableTreeNode("View Orders");
         DefaultMutableTreeNode manage_pricing=new DefaultMutableTreeNode("Manage Pricing");
         DefaultMutableTreeNode view_seat=new DefaultMutableTreeNode("View Seat Occupancy");
         DefaultMutableTreeNode refund_manage=new DefaultMutableTreeNode("Refund Management");
@@ -150,7 +161,7 @@ public class ViewBookingPage extends JFrame {
                             dispose();
                             break;
 
-                        case "View Booking":
+                        case "View Orders":
                             ViewBookingPage vbp=new ViewBookingPage();
                             dispose();
                             break;
@@ -228,6 +239,114 @@ public class ViewBookingPage extends JFrame {
         dashboardTree.setCellRenderer(renderer);
 
 
+        JLabel orderIDLabel =new JLabel();
+        orderIDLabel.setText("Order ID:");
+        orderIDLabel.setBounds(240,80,150,50);
+        orderIDLabel.setFont(new Font("Arial",Font.BOLD,18));
+        orderIDLabel.setForeground(Color.orange);
+
+        JTextField orderIDTxt =new JTextField();
+        orderIDTxt.setBounds(400,90,150,30);
+
+        JButton searchButton=new JButton("Search");
+        searchButton.setBounds(570,90,100,30);
+        searchButton.setBackground(Color.cyan);
+        searchButton.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                String id= orderIDTxt.getText();
+                boolean found=false;
+                String query="Select * from Orders where OrderID=? order by OrderID";
+                try {
+                    PreparedStatement pst=conn.prepareStatement(query);
+                    pst.setInt(1,Integer.parseInt(id));
+                    ResultSet rs=pst.executeQuery();
+                    while (rs.next())
+                    {
+                        tableModel.setRowCount(0);
+                        int bookID =rs.getInt("BookID");
+                        int orderID =rs.getInt("OrderID");
+                        int cusID =rs.getInt("CusID");
+                        int promoCodeID =rs.getInt("PromoCodeID");
+                        String date=rs.getString("OrderDate");
+                        String details=rs.getString("OrderDetails");
+                        int size=7*details.length();
+                        recTable.getColumnModel().getColumn(5).setPreferredWidth(size);
+                        Float priceID =rs.getFloat("TotalPrice");
+
+                        String [] row={Integer.toString(orderID),Integer.toString(bookID),Integer.toString(cusID),
+                                Integer.toString(promoCodeID),date,details,Float.toString(priceID)
+                        };
+                        tableModel.addRow(row);
+                        found=true;
+                    }
+                }
+                catch (SQLException ex)
+                {
+                    throw new RuntimeException(ex);
+                }
+                if (!found)
+                {
+                    JOptionPane.showMessageDialog(null, "Record with Order ID "+ id+ " not found.", "Record Not Found", JOptionPane.WARNING_MESSAGE);
+                }
+
+            }
+        });
+        JPanel tabPanel=new JPanel();
+        tabPanel.setBounds(250,190,600,350);
+        tabPanel.setLayout(null);
+
+        String[] column={"Order ID","Book ID","Customer ID","PromoCode ID","Order Date","Order Details","Total Price"};
+
+        tableModel=new DefaultTableModel(column,0);
+        recTable=new JTable(tableModel);
+        recTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // This ensures horizontal
+
+        recTable.getColumnModel().getColumn(0).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(1).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(2).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(3).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(4).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(5).setPreferredWidth(100);
+        recTable.getColumnModel().getColumn(6).setPreferredWidth(100);
+
+
+        String query="Select * from Orders order by OrderID";
+        try
+        {
+            PreparedStatement pst=conn.prepareStatement(query);
+            ResultSet rs=pst.executeQuery();
+            while(rs.next())
+            {
+                int bookID =rs.getInt("BookID");
+                int orderID =rs.getInt("OrderID");
+                int cusID =rs.getInt("CusID");
+                int promoCodeID =rs.getInt("PromoCodeID");
+                String date=rs.getString("OrderDate");
+                String details=rs.getString("OrderDetails");
+                int size=7*details.length();
+                recTable.getColumnModel().getColumn(5).setPreferredWidth(size);
+                Float priceID =rs.getFloat("TotalPrice");
+
+                String [] row={Integer.toString(orderID),Integer.toString(bookID),Integer.toString(cusID),
+                        Integer.toString(promoCodeID),date,details,Float.toString(priceID)
+                };
+                tableModel.addRow(row);
+            }
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeException(e);
+        }
+
+
+        JScrollPane scrollPane=new JScrollPane(recTable);
+        scrollPane.setBounds(1,1,600,350);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        tabPanel.add(scrollPane);
 
         setTitle("View Booking Page");
         setLayout(null);
@@ -241,6 +360,10 @@ public class ViewBookingPage extends JFrame {
 
         add(label);
         add(menuPanel);
+        add(orderIDLabel);
+        add(orderIDTxt);
+        add(searchButton);
+        add(tabPanel);
 
 
     }

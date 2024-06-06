@@ -30,7 +30,7 @@ public class WelcomePage extends JFrame {
         customerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                CustomerMenu menu=new CustomerMenu();
+                CustomerMenu menu=new CustomerMenu("Dummy");
 
                 dispose();
 
