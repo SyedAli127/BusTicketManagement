@@ -318,7 +318,7 @@ public class ViewFeedbackPage extends JFrame{
         recTable.getColumnModel().getColumn(6).setPreferredWidth(100);
         recTable.getColumnModel().getColumn(7).setPreferredWidth(100);
 
-        String query="select f.FeedbackID,f.OrderID,f.CusID,f.Rating,f.Feedback,cus.FirstName,cus.LastName,cus.Email from Feedback f join Customer cus on cus.CusID=f.CusID";
+        String query="select f.FeedbackID,f.OrderID,f.CusID,f.Rating,f.Feedback,cus.FirstName,cus.LastName,cus.Email from Feedback f join Customer cus on cus.CusID=f.CusID order by FeedbackID";
         try {
             PreparedStatement psmt=connection.prepareStatement(query);
             ResultSet rs=psmt.executeQuery();

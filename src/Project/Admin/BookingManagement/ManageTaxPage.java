@@ -334,7 +334,7 @@ public class ManageTaxPage extends JFrame {
         recTable.getColumnModel().getColumn(2).setPreferredWidth(120);
         recTable.getColumnModel().getColumn(3).setPreferredWidth(237);
 
-        String query="select * from Tax";
+        String query="select * from Tax order by TaxID";
         try
         {
             PreparedStatement psmt=connection.prepareStatement(query);

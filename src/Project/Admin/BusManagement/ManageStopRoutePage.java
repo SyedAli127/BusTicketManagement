@@ -362,7 +362,7 @@ public class ManageStopRoutePage extends JFrame {
         recTable.getColumnModel().getColumn(9).setPreferredWidth(100);
         recTable.getColumnModel().getColumn(10).setPreferredWidth(100);
 
-        String query="Select * from StopRoute";
+        String query="Select * from StopRoute order by StopRouteID";
         try
         {
             PreparedStatement psmt=connection.prepareStatement(query);

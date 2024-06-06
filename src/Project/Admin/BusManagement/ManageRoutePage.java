@@ -354,7 +354,7 @@ public class ManageRoutePage extends JFrame {
         recTable.getColumnModel().getColumn(10).setPreferredWidth(100);
         recTable.getColumnModel().getColumn(11).setPreferredWidth(100);
 
-        String query="Select * from Route";
+        String query="Select * from Route order by RouteID";
         try {
             PreparedStatement psmnt=connection.prepareStatement(query);
             ResultSet rs=psmnt.executeQuery();
@@ -515,7 +515,7 @@ public class ManageRoutePage extends JFrame {
         stopRouteIDLabel.setVisible(false);
 
         ArrayList<String> stopRouteIDStatList = new ArrayList<>();
-        String routeIDQuery ="select StopRouteID from StopRoute";
+        String routeIDQuery ="select StopRouteID from StopRoute order by StopRouteID";
         try
         {
             PreparedStatement rspst=connection.prepareStatement(routeIDQuery);
@@ -1132,7 +1132,7 @@ public class ManageRoutePage extends JFrame {
         stopRouteIDLabel.setVisible(false);
 
         ArrayList<String> routeIDStatList = new ArrayList<>();
-        String stopRouteIDQuery ="select StopRouteID from StopRoute";
+        String stopRouteIDQuery ="select StopRouteID from StopRoute order by StopRouteID";
         try
         {
             PreparedStatement rspst=connection.prepareStatement(stopRouteIDQuery);

@@ -352,7 +352,7 @@ public class ManageManagerPage extends JFrame{
         recTable.getColumnModel().getColumn(11).setPreferredWidth(100);
         recTable.getColumnModel().getColumn(12).setPreferredWidth(100);
 
-        String query="Select * from Manager";
+        String query="Select * from Manager order by ManagerID";
         try
         {
             PreparedStatement psmt=connection.prepareStatement(query);

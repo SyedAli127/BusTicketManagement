@@ -261,7 +261,7 @@ public class ManagePromoCodePage extends JFrame {
             {
                 int prcID=Integer.parseInt(promoCodeIDSearchTxt.getText());
                 boolean found=false;
-                String query="select * from PromoCode where PromoCodeID=?";
+                String query="select * from PromoCode where PromoCodeID=? ";
                 try
                 {
                     PreparedStatement psmt=connection.prepareStatement(query);
@@ -341,7 +341,7 @@ public class ManagePromoCodePage extends JFrame {
         recTable.getColumnModel().getColumn(2).setPreferredWidth(140);
         recTable.getColumnModel().getColumn(3).setPreferredWidth(150);
         recTable.getColumnModel().getColumn(4).setPreferredWidth(100);
-        String query="select * from PromoCode";
+        String query="select * from PromoCode order by PromoCodeID";
         try
         {
             PreparedStatement psmt=connection.prepareStatement(query);

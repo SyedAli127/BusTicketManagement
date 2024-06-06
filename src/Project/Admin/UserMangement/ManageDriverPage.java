@@ -353,7 +353,7 @@ public class ManageDriverPage extends JFrame {
         recTable.getColumnModel().getColumn(9).setPreferredWidth(100);
         recTable.getColumnModel().getColumn(10).setPreferredWidth(100);
 
-        String query="Select * from Driver";
+        String query="Select * from Driver order by DriverID";
         try {
             PreparedStatement psmt=connection.prepareStatement(query);
             ResultSet rs=psmt.executeQuery();
@@ -435,130 +435,102 @@ public class ManageDriverPage extends JFrame {
         addRecLabel.setForeground(Color.orange);
         addRecLabel.setBounds(150, 30,240,30);
 
-        JLabel managerIDLabel =new JLabel();
-        managerIDLabel.setText("Manager ID:");
-        managerIDLabel.setBounds(10,100,150,30);
-        managerIDLabel.setFont(new Font("Arial",Font.BOLD,20));
-        managerIDLabel.setForeground(Color.orange);
-
-        ArrayList<String> managerIDStatList = new ArrayList<>();
-        managerIDStatList.add("null");
-        String managerIDIDQuery ="select ManagerID from Manager where AccountStatus='Active'";
-        try
-        {
-            PreparedStatement rspst=connection.prepareStatement(managerIDIDQuery);
-            ResultSet rs=rspst.executeQuery();
-            while(rs.next())
-            {
-                String managerID=Integer.toString(rs.getInt("ManagerID"));
-                managerIDStatList.add(managerID);
-            }
-        }
-        catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        String[] managerIDState = managerIDStatList.toArray(new String[0]);
-
-        JComboBox managerIDCombobox =new JComboBox<>(managerIDState);
-        managerIDCombobox.setBounds(200,150,150,35);
-        //managerIDCombobox.setBackground(Color.orange);
-
 
         JLabel firstNameLabel =new JLabel();
         firstNameLabel.setText("First Name:");
-        firstNameLabel.setBounds(10,150,180,30);
+        firstNameLabel.setBounds(10,100,180,30);
         firstNameLabel.setFont(new Font("Arial",Font.BOLD,20));
         firstNameLabel.setForeground(Color.orange);
 
         JTextField firstNameTxt =new JTextField();
-        firstNameTxt.setBounds(200,150,150,30);
+        firstNameTxt.setBounds(200,100,150,30);
 
         JLabel lastNameLabel =new JLabel();
         lastNameLabel.setText("Last Name:");
-        lastNameLabel.setBounds(10,200,180,30);
+        lastNameLabel.setBounds(10,150,180,30);
         lastNameLabel.setFont(new Font("Arial",Font.BOLD,20));
         lastNameLabel.setForeground(Color.orange);
 
         JTextField lastNameTxt =new JTextField();
-        lastNameTxt.setBounds(200,200,150,30);
+        lastNameTxt.setBounds(200,150,150,30);
 
         JLabel dobLabel =new JLabel();
         dobLabel.setText("Date of Birth:");
-        dobLabel.setBounds(10,250,180,30);
+        dobLabel.setBounds(10,200,180,30);
         dobLabel.setFont(new Font("Arial",Font.BOLD,20));
         dobLabel.setForeground(Color.orange);
 
         JLabel dobDayLabel =new JLabel("(Day)");
-        dobDayLabel.setBounds(200,285,50,30);
+        dobDayLabel.setBounds(200,235,50,30);
         dobDayLabel.setForeground(Color.orange);
         dobDayLabel.setFont(new Font("Arial",Font.BOLD,11));
 
         JTextField dobDayTxt =new JTextField();
-        dobDayTxt.setBounds(200,250,40,30);
+        dobDayTxt.setBounds(200,200,40,30);
 
         JLabel dobMonLabel =new JLabel("(Month)");
-        dobMonLabel.setBounds(250,285,50,30);
+        dobMonLabel.setBounds(250,235,50,30);
         dobMonLabel.setForeground(Color.orange);
         dobMonLabel.setFont(new Font("Arial",Font.BOLD,11));
 
         JTextField dobMonTxt =new JTextField();
-        dobMonTxt.setBounds(250,250,40,30);
+        dobMonTxt.setBounds(250,200,40,30);
 
         JLabel dobYearLabel =new JLabel("(Year)");
-        dobYearLabel.setBounds(300,285,50,30);
+        dobYearLabel.setBounds(300,235,50,30);
         dobYearLabel.setForeground(Color.orange);
         dobYearLabel.setFont(new Font("Arial",Font.BOLD,11));
 
         JTextField dobYearTxt =new JTextField();
-        dobYearTxt.setBounds(300,250,40,30);
+        dobYearTxt.setBounds(300,200,40,30);
 
         JLabel cnicNoLabel=new JLabel();
         cnicNoLabel.setText("CNIC Number:");
-        cnicNoLabel.setBounds(10,340,180,30);
+        cnicNoLabel.setBounds(10,290,180,30);
         cnicNoLabel.setFont(new Font("Arial",Font.BOLD,20));
         cnicNoLabel.setForeground(Color.orange);
 
         JTextField cnicNoTxt=new JTextField();
-        cnicNoTxt.setBounds(200,340,150,30);
+        cnicNoTxt.setBounds(200,290,150,30);
 
         JLabel contactNoLabel =new JLabel();
         contactNoLabel.setText("Contact Number:");
-        contactNoLabel.setBounds(10,390,180,30);
+        contactNoLabel.setBounds(10,340,180,30);
         contactNoLabel.setFont(new Font("Arial",Font.BOLD,20));
         contactNoLabel.setForeground(Color.orange);
 
         JTextField contactNoTxt=new JTextField();
-        contactNoTxt.setBounds(200,390,150,30);
+        contactNoTxt.setBounds(200,340,150,30);
 
         JLabel licenseNoLabel =new JLabel();
         licenseNoLabel.setText("License Number:");
-        licenseNoLabel.setBounds(10,440,180,30);
+        licenseNoLabel.setBounds(10,390,180,30);
         licenseNoLabel.setFont(new Font("Arial",Font.BOLD,20));
         licenseNoLabel.setForeground(Color.orange);
 
         JTextField licenseNoTxt =new JTextField();
-        licenseNoTxt.setBounds(200,440,150,30);
+        licenseNoTxt.setBounds(200,390,150,30);
 
         JLabel addressLabel =new JLabel();
         addressLabel.setText("Address:");
-        addressLabel.setBounds(10,490,180,30);
+        addressLabel.setBounds(10,440,180,30);
         addressLabel.setFont(new Font("Arial",Font.BOLD,20));
         addressLabel.setForeground(Color.orange);
 
         JTextField addressTxt =new JTextField();
-        addressTxt.setBounds(200,490,150,30);
+        addressTxt.setBounds(200,440,150,30);
 
         JLabel salaryLabel =new JLabel();
         salaryLabel.setText("Salary:");
-        salaryLabel.setBounds(10,540,180,30);
+        salaryLabel.setBounds(10,490,180,30);
         salaryLabel.setFont(new Font("Arial",Font.BOLD,20));
         salaryLabel.setForeground(Color.orange);
 
         JTextField salaryTxt =new JTextField();
-        salaryTxt.setBounds(200,540,150,30);
+        salaryTxt.setBounds(200,490,150,30);
 
         JButton addButton=new JButton("Add");
-        addButton.setBounds(150,600,100,40);
+        addButton.setBounds(150,550,100,40);
         addButton.setBackground(Color.cyan);
         addButton.addActionListener(new ActionListener()
         {
@@ -567,21 +539,14 @@ public class ManageDriverPage extends JFrame {
             {
                 int id,maxVal=0;
                 String dob=dobYearTxt.getText()+"-"+dobMonTxt.getText()+"-"+dobDayTxt.getText();
-                String manID=(String) managerIDCombobox.getSelectedItem();
                 String insertQuery="insert into Driver(ManagerID,FirstName,LastName,DOB,CNIC,ContactNo,LicenseNo,Address,Salary,AccountStatus) " +
                         "values(?,?,?,?,?,?,?,?,?,?)";
                 try
                 {
                     PreparedStatement psmt=connection.prepareStatement(insertQuery);
-                    if(manID.equals("null"))
-                    {
-                        psmt.setString(2,null);
 
-                    }
-                    else
-                    {
-                        psmt.setInt(2, Integer.parseInt(manID));
-                    }
+
+                    psmt.setString(2,null);
                     psmt.setString(2,firstNameTxt.getText());
                     psmt.setString(3,lastNameTxt.getText());
                     psmt.setString(4,dob);
@@ -611,7 +576,7 @@ public class ManageDriverPage extends JFrame {
                     throw new RuntimeException(ex);
                 }
 
-                String[] row={Integer.toString(maxVal),manID,firstNameTxt.getText(), lastNameTxt.getText(),
+                String[] row={Integer.toString(maxVal),"",firstNameTxt.getText(), lastNameTxt.getText(),
                         dob,cnicNoTxt.getText(),contactNoTxt.getText(),
                         licenseNoTxt.getText(),addressTxt.getText(),salaryTxt.getText(),"Active"};
                 int len=addressTxt.getText().length();
@@ -623,8 +588,6 @@ public class ManageDriverPage extends JFrame {
         });
 
         inputPanel.add(addRecLabel);
-        inputPanel.add(managerIDLabel);
-        inputPanel.add(managerIDCombobox);
         inputPanel.add(firstNameLabel);
         inputPanel.add(firstNameTxt);
         inputPanel.add(lastNameLabel);

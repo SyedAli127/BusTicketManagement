@@ -359,7 +359,7 @@ public class ManageBusMaintenancePage extends JFrame {
         recTable.getColumnModel().getColumn(6).setPreferredWidth(100);
         recTable.getColumnModel().getColumn(7).setPreferredWidth(130);
 
-        String query="Select * from BusMaintenance";
+        String query="Select * from BusMaintenance order by BusMaintenanceID ";
         try {
             PreparedStatement psmt=conn.prepareStatement(query);
             ResultSet rs=psmt.executeQuery();
@@ -444,7 +444,7 @@ public class ManageBusMaintenancePage extends JFrame {
         busIDLabel.setForeground(Color.orange);
 
         ArrayList<String> busIDStatList = new ArrayList<>();
-        String busIDIDQuery ="select BusID from Bus";
+        String busIDIDQuery ="select BusID from Bus order by busID";
         try
         {
             PreparedStatement rspst=conn.prepareStatement(busIDIDQuery);
@@ -464,126 +464,98 @@ public class ManageBusMaintenancePage extends JFrame {
         busIDCombobox.setBounds(200,100,150,35);
         //busIDCombobox.setBackground(Color.orange);
 
-        JLabel managerIDLabel=new JLabel("Manager ID:");
-        managerIDLabel.setFont(new Font("Arial",Font.BOLD,20));
-        managerIDLabel.setForeground(Color.orange);
-        managerIDLabel.setBounds(10,150,180,30);
-
-        ArrayList<String> managerIDStatList = new ArrayList<>();
-        managerIDStatList.add("null");
-        String managerIDIDQuery ="select ManagerID from Manager where AccountStatus='Active'";
-        try
-        {
-            PreparedStatement rspst=conn.prepareStatement(managerIDIDQuery);
-            ResultSet rs=rspst.executeQuery();
-            while(rs.next())
-            {
-                String managerID=Integer.toString(rs.getInt("ManagerID"));
-                managerIDStatList.add(managerID);
-            }
-        }
-        catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        String[] managerIDState = managerIDStatList.toArray(new String[0]);
-
-        JComboBox managerIDCombobox =new JComboBox<>(managerIDState);
-        managerIDCombobox.setBounds(200,150,150,35);
-        //managerIDCombobox.setBackground(Color.orange);
-
-
         JLabel maintenanceDateLabel=new JLabel("Maintenance Date:");
         maintenanceDateLabel.setFont(new Font("Arial",Font.BOLD,20));
         maintenanceDateLabel.setForeground(Color.orange);
-        maintenanceDateLabel.setBounds(10,200,180,30);
+        maintenanceDateLabel.setBounds(10,150,180,30);
 
         JLabel maintenanceDateDayLabel =new JLabel("(Day)");
-        maintenanceDateDayLabel.setBounds(200,230,50,30);
+        maintenanceDateDayLabel.setBounds(200,180,50,30);
         maintenanceDateDayLabel.setForeground(Color.orange);
         maintenanceDateDayLabel.setFont(new Font("Arial",Font.BOLD,11));
 
         JTextField maintenanceDateDayTxt=new JTextField();
-        maintenanceDateDayTxt.setBounds(200,200,40,30);
+        maintenanceDateDayTxt.setBounds(200,150,40,30);
 
         JLabel maintenanceDateMonLabel =new JLabel("(Month)");
-        maintenanceDateMonLabel.setBounds(250,230,50,30);
+        maintenanceDateMonLabel.setBounds(250,180,50,30);
         maintenanceDateMonLabel.setForeground(Color.orange);
         maintenanceDateMonLabel.setFont(new Font("Arial",Font.BOLD,11));
 
         JTextField maintenanceDateMonTxt=new JTextField();
-        maintenanceDateMonTxt.setBounds(250,200,40,30);
+        maintenanceDateMonTxt.setBounds(250,150,40,30);
 
 
         JLabel maintenanceDateYearLabel =new JLabel("(Year)");
-        maintenanceDateYearLabel.setBounds(300,230,50,30);
+        maintenanceDateYearLabel.setBounds(300,180,50,30);
         maintenanceDateYearLabel.setForeground(Color.orange);
         maintenanceDateYearLabel.setFont(new Font("Arial",Font.BOLD,11));
 
 
         JTextField maintenanceDateYearTxt=new JTextField();
-        maintenanceDateYearTxt.setBounds(300,200,40,30);
+        maintenanceDateYearTxt.setBounds(300,150,40,30);
 
         JLabel maintenanceTypeLabel=new JLabel("Maintenance Type:");
         maintenanceTypeLabel.setFont(new Font("Arial",Font.BOLD,20));
         maintenanceTypeLabel.setForeground(Color.orange);
-        maintenanceTypeLabel.setBounds(10,280,180,30);
+        maintenanceTypeLabel.setBounds(10,230,180,30);
 
         JTextField maintenanceTypeTxt=new JTextField();
-        maintenanceTypeTxt.setBounds(200,280,180,30);
+        maintenanceTypeTxt.setBounds(200,230,180,30);
 
         JLabel costLabel=new JLabel("Cost:");
         costLabel.setFont(new Font("Arial",Font.BOLD,20));
         costLabel.setForeground(Color.orange);
-        costLabel.setBounds(10,330,180,30);
+        costLabel.setBounds(10,280,180,30);
 
         JTextField costTxt=new JTextField();
-        costTxt.setBounds(200,330,180,30);
+        costTxt.setBounds(200,280,180,30);
 
 
         JLabel descriptionLabel=new JLabel("Description:");
         descriptionLabel.setFont(new Font("Arial",Font.BOLD,20));
         descriptionLabel.setForeground(Color.orange);
-        descriptionLabel.setBounds(10,380,180,30);
+        descriptionLabel.setBounds(10,330,180,30);
 
         JTextField descriptionTxt=new JTextField();
-        descriptionTxt.setBounds(200,380,180,30);
+        descriptionTxt.setBounds(200,330,180,30);
 
 
         JLabel nextSchDateLabel=new JLabel("Next Schedule Date:");
         nextSchDateLabel.setFont(new Font("Arial",Font.BOLD,18));
         nextSchDateLabel.setForeground(Color.orange);
-        nextSchDateLabel.setBounds(10,430,180,30);
+        nextSchDateLabel.setBounds(10,380,180,30);
 
         JLabel nextSchDateDayLabel =new JLabel("(Day)");
-        nextSchDateDayLabel.setBounds(200,460,50,30);
+        nextSchDateDayLabel.setBounds(200,410,50,30);
         nextSchDateDayLabel.setForeground(Color.orange);
         nextSchDateDayLabel.setFont(new Font("Arial",Font.BOLD,11));
 
         JTextField nextSchDateDayTxt=new JTextField();
-        nextSchDateDayTxt.setBounds(200,430,40,30);
+        nextSchDateDayTxt.setBounds(200,380,40,30);
 
         JLabel nextSchDateMonLabel =new JLabel("(Month)");
-        nextSchDateMonLabel.setBounds(250,460,50,30);
+        nextSchDateMonLabel.setBounds(250,410,50,30);
         nextSchDateMonLabel.setForeground(Color.orange);
         nextSchDateMonLabel.setFont(new Font("Arial",Font.BOLD,11));
 
         JTextField nextSchDateMonTxt=new JTextField();
-        nextSchDateMonTxt.setBounds(250,430,40,30);
+        nextSchDateMonTxt.setBounds(250,380,40,30);
 
 
         JLabel nextSchDateYearLabel =new JLabel("(Year)");
-        nextSchDateYearLabel.setBounds(300,460,50,30);
+        nextSchDateYearLabel.setBounds(300,410,50,30);
         nextSchDateYearLabel.setForeground(Color.orange);
         nextSchDateYearLabel.setFont(new Font("Arial",Font.BOLD,11));
 
 
         JTextField nextSchDateYearTxt=new JTextField();
-        nextSchDateYearTxt.setBounds(300,430,40,30);
+        nextSchDateYearTxt.setBounds(300,380,40,30);
 
 
         JButton addButton=new JButton("Add");
         addButton.setBackground(Color.cyan);
-        addButton.setBounds(150,510,100,30);
+        addButton.setBounds(150,470,100,30);
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e)
@@ -591,7 +563,6 @@ public class ManageBusMaintenancePage extends JFrame {
                 int iD,maxVal=0;
                 String maintenanceDate=maintenanceDateYearTxt.getText()+"-"+maintenanceDateMonTxt.getText()+"-"+maintenanceDateDayTxt.getText();
                 String nextsch=nextSchDateYearTxt.getText()+"-"+nextSchDateMonTxt.getText()+"-"+nextSchDateDayTxt.getText();
-                String manID=(String) managerIDCombobox.getSelectedItem();
                 String bID=(String)busIDCombobox.getSelectedItem();
 
                 String insertQuery="insert into BusMaintenance(BusID,ManagerID,MaintenanceDate,MaintenanceType,Cost,Description,NextScheduleDate) values(?,?,?,?,?,?,?)";
@@ -599,16 +570,7 @@ public class ManageBusMaintenancePage extends JFrame {
                     PreparedStatement psmt=conn.prepareStatement(insertQuery);
 
                     psmt.setInt(1,Integer.parseInt(bID));
-
-                    if(manID.equals("null"))
-                    {
-                        psmt.setString(2,null);
-
-                    }
-                    else
-                    {
-                        psmt.setInt(2, Integer.parseInt(manID));
-                    }
+                    psmt.setString(2,null);
                     psmt.setString(3,maintenanceDate);
                     psmt.setString(4,maintenanceTypeTxt.getText());
                     psmt.setInt(5,Integer.parseInt(costTxt.getText()));
@@ -632,7 +594,7 @@ public class ManageBusMaintenancePage extends JFrame {
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);
                 }
-                String[] row={Integer.toString(maxVal),bID,manID,maintenanceDate,maintenanceTypeTxt.getText(),costTxt.getText(),descriptionTxt.getText(),nextsch};
+                String[] row={Integer.toString(maxVal),bID,"",maintenanceDate,maintenanceTypeTxt.getText(),costTxt.getText(),descriptionTxt.getText(),nextsch};
 
 
 
@@ -646,8 +608,6 @@ public class ManageBusMaintenancePage extends JFrame {
         inputPanel.add(addRecordLabel);
         inputPanel.add(busIDLabel);
         inputPanel.add(busIDCombobox);
-        inputPanel.add(managerIDLabel);
-        inputPanel.add(managerIDCombobox);
         inputPanel.add(maintenanceDateLabel);
         inputPanel.add(maintenanceDateDayLabel);
         inputPanel.add(maintenanceDateDayTxt);
@@ -836,7 +796,7 @@ public class ManageBusMaintenancePage extends JFrame {
         busIDLabel.setVisible(false);
 
         ArrayList<String> busIDStatList = new ArrayList<>();
-        String busIDIDQuery ="select BusID from Bus";
+        String busIDIDQuery ="select BusID from Bus order by BusID";
         try
         {
             PreparedStatement rspst=conn.prepareStatement(busIDIDQuery);

@@ -358,7 +358,7 @@ public class ManageBusPage extends JFrame {
         recTable=new JTable(tableModel);
         recTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // This ensures horizontal scrolling
 
-        String query="Select * from Bus";
+        String query="Select * from Bus order by busID";
         try {
             PreparedStatement ps=connection.prepareStatement(query);
             ResultSet rs=ps.executeQuery();
@@ -460,110 +460,82 @@ public class ManageBusPage extends JFrame {
         addRecLabel.setForeground(Color.orange);
         addRecLabel.setBounds(150, 30,240,30);
 
-        JLabel managerIDLabel =new JLabel();
-        managerIDLabel.setText("Manager ID:");
-        managerIDLabel.setBounds(10,100,220,30);
-        managerIDLabel.setFont(new Font("Arial",Font.BOLD,20));
-        managerIDLabel.setForeground(Color.orange);
-
-        ArrayList<String> managerIDStatList = new ArrayList<>();
-        managerIDStatList.add("null");
-        String managerIDIDQuery ="select ManagerID from Manager where AccountStatus='Active'";
-        try
-        {
-            PreparedStatement rspst=connection.prepareStatement(managerIDIDQuery);
-            ResultSet rs=rspst.executeQuery();
-            while(rs.next())
-            {
-                String managerID=Integer.toString(rs.getInt("ManagerID"));
-                managerIDStatList.add(managerID);
-            }
-        }
-        catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        String[] managerIDState = managerIDStatList.toArray(new String[0]);
-
-        JComboBox managerIDCombobox =new JComboBox<>(managerIDState);
-        managerIDCombobox.setBounds(230,100,150,35);
-        //managerIDCombobox.setBackground(Color.orange);
-
 
         JLabel busCompLabel =new JLabel();
         busCompLabel.setText("Bus Company Name:");
-        busCompLabel.setBounds(10,150,220,30);
+        busCompLabel.setBounds(10,100,220,30);
         busCompLabel.setFont(new Font("Arial",Font.BOLD,20));
         busCompLabel.setForeground(Color.orange);
 
         JTextField busCompTxt =new JTextField();
-        busCompTxt.setBounds(230,150,150,30);
+        busCompTxt.setBounds(230,100,150,30);
 
         JLabel busNameLabel=new JLabel();
         busNameLabel.setText("Bus Name:");
-        busNameLabel.setBounds(10,200,220,30);
+        busNameLabel.setBounds(10,150,220,30);
         busNameLabel.setFont(new Font("Arial",Font.BOLD,20));
         busNameLabel.setForeground(Color.orange);
 
         JTextField busNameTxt =new JTextField();
-        busNameTxt.setBounds(230,200,150,30);
+        busNameTxt.setBounds(230,150,150,30);
 
         JLabel modelLabel =new JLabel();
         modelLabel.setText("Bus Model:");
-        modelLabel.setBounds(10,250,220,30);
+        modelLabel.setBounds(10,200,220,30);
         modelLabel.setFont(new Font("Arial",Font.BOLD,20));
         modelLabel.setForeground(Color.orange);
 
         JTextField modelTxt =new JTextField();
-        modelTxt.setBounds(230,250,150,30);
+        modelTxt.setBounds(230,200,150,30);
 
         JLabel regNoLabel =new JLabel();
         regNoLabel.setText("Registration Number:");
-        regNoLabel.setBounds(10,300,220,30);
+        regNoLabel.setBounds(10,250,220,30);
         regNoLabel.setFont(new Font("Arial",Font.BOLD,20));
         regNoLabel.setForeground(Color.orange);
 
         JTextField regNoTxt =new JTextField();
-        regNoTxt.setBounds(230,300,150,30);
+        regNoTxt.setBounds(230,250,150,30);
 
         JLabel chassisNoLabel =new JLabel();
         chassisNoLabel.setText("Chassis Number:");
-        chassisNoLabel.setBounds(10,350,220,30);
+        chassisNoLabel.setBounds(10,300,220,30);
         chassisNoLabel.setFont(new Font("Arial",Font.BOLD,20));
         chassisNoLabel.setForeground(Color.orange);
 
         JTextField chassisNoTxt =new JTextField();
-        chassisNoTxt.setBounds(230,350,150,30);
+        chassisNoTxt.setBounds(230,300,150,30);
 
         JLabel economyLabel =new JLabel();
         economyLabel.setText("Economy Seats:");
-        economyLabel.setBounds(10,400,220,30);
+        economyLabel.setBounds(10,350,220,30);
         economyLabel.setFont(new Font("Arial",Font.BOLD,20));
         economyLabel.setForeground(Color.orange);
 
         JTextField economyTxt =new JTextField();
-        economyTxt.setBounds(230,400,70,30);
+        economyTxt.setBounds(230,350,70,30);
 
         JLabel luxuryLabel =new JLabel();
         luxuryLabel.setText("Luxury Seats:");
-        luxuryLabel.setBounds(10,450,220,30);
+        luxuryLabel.setBounds(10,400,220,30);
         luxuryLabel.setFont(new Font("Arial",Font.BOLD,20));
         luxuryLabel.setForeground(Color.orange);
 
         JTextField luxuryTxt =new JTextField();
-        luxuryTxt.setBounds(230,450,70,30);
+        luxuryTxt.setBounds(230,400,70,30);
 
         JLabel firstClassLabel =new JLabel();
         firstClassLabel.setText("First-Class Seats:");
-        firstClassLabel.setBounds(10,500,220,30);
+        firstClassLabel.setBounds(10,450,220,30);
         firstClassLabel.setFont(new Font("Arial",Font.BOLD,20));
         firstClassLabel.setForeground(Color.orange);
 
         JTextField firstClassTxt =new JTextField();
-        firstClassTxt.setBounds(230,500,70,30);
+        firstClassTxt.setBounds(230,450,70,30);
 
 
         JButton addButton=new JButton("Add");
-        addButton.setBounds(150,550,100,40);
+        addButton.setBounds(150,500,100,40);
         addButton.setBackground(Color.cyan);
         addButton.addActionListener(new ActionListener() {
             @Override
@@ -575,22 +547,13 @@ public class ManageBusPage extends JFrame {
                 int economySeat = Integer.parseInt(economyTxt.getText());
                 int luxurySeat = Integer.parseInt(luxuryTxt.getText());
                 int firstSeat = Integer.parseInt(firstClassTxt.getText());
-                String manID=(String) managerIDCombobox.getSelectedItem();
                 int totalSeat=economySeat+luxurySeat+firstSeat;
                 try{
                     Connection connection = Database.setConnection();
                     String insertQuery = "INSERT INTO Bus (ManagerID,BusCompany,BusName,Model, RegistrationNo,ChassisNo, EconomySeats, LuxurySeats, FirstClassSeats, TotalSeats,Availability) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
                     PreparedStatement psmt= connection.prepareStatement(insertQuery);
-                    if(manID.equals("null"))
-                    {
-                        psmt.setString(1,null);
 
-                    }
-                    else
-                    {
-                        psmt.setInt(1, Integer.parseInt(manID));
-                    }
-
+                    psmt.setString(1,null);
                     psmt.setString(2,busCompTxt.getText());
                     psmt.setString(3,busNameTxt.getText());
                     psmt.setString(4,modelTxt.getText());
@@ -634,7 +597,7 @@ public class ManageBusPage extends JFrame {
 
                 String[] row={Integer.toString(maxVal), busCompTxt.getText(), busNameTxt.getText(), modelTxt.getText(), regNoTxt.getText(), chassisNoTxt.getText(),
                         Integer.toString(economySeat), Integer.toString(luxurySeat), Integer.toString(firstSeat), Integer.toString(totalSeat),
-                        economySeats,luxurySeats,firstClassSeats,manID,"Active"};
+                        economySeats,luxurySeats,firstClassSeats,"","Active"};
 
                 tableModel.addRow(row);
 
@@ -643,8 +606,6 @@ public class ManageBusPage extends JFrame {
         });
 
         addDialog.add(addRecLabel);
-        addDialog.add(managerIDLabel);
-        addDialog.add(managerIDCombobox);
         addDialog.add(busNameLabel);
         addDialog.add(busNameTxt);
         addDialog.add(busCompLabel);

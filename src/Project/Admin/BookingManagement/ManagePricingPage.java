@@ -340,7 +340,7 @@ public class ManagePricingPage extends JFrame{
         recTable.getColumnModel().getColumn(3).setPreferredWidth(150);
         recTable.getColumnModel().getColumn(4).setPreferredWidth(85);
 
-        String query="Select * from Price";
+        String query="Select * from Price order by PriceID";
         try
         {
             PreparedStatement psmt=connection.prepareStatement(query);

@@ -348,7 +348,7 @@ public class ManageUserPage extends JFrame {
         recTable.getColumnModel().getColumn(10).setPreferredWidth(120);
         recTable.getColumnModel().getColumn(11).setPreferredWidth(130);
 
-        String query="Select * from Customer";
+        String query="Select * from Customer order by CustomerID";
         try
         {
             PreparedStatement psmt=conn.prepareStatement(query);

@@ -344,7 +344,7 @@ public class RefundManagementPage extends JFrame{
         recTable.getColumnModel().getColumn(8).setPreferredWidth(100);
 
         String query="select r.refundID,r.orderID,r.CusID,r.reason,r.additionalNote,r.decision,cus.FirstName,cus.LastName,cus.Email,d.orderDate from" +
-                " Refund r join Customer cus on r.cusID=cus.CusID join Orders d on r.orderID=d.orderID";
+                " Refund r join Customer cus on r.cusID=cus.CusID join Orders d on r.orderID=d.orderID order by RefundID";
         try {
             PreparedStatement psmt=connection.prepareStatement(query);
             ResultSet rs=psmt.executeQuery();
@@ -362,7 +362,8 @@ public class RefundManagementPage extends JFrame{
                 String[] data={Integer.toString(refundID),Integer.toString(orderID),Integer.toString(customerID),firstName,lastName,email,bookingDate,reason,additionalNote,decision};
                 tableModel.addRow(data);
             }
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             throw new RuntimeException(e);
         }
 

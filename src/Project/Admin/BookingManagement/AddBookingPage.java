@@ -424,7 +424,7 @@ public class AddBookingPage extends JFrame{
         routeIDLabel.setForeground(Color.orange);
 
         ArrayList<String> routeIDStatList = new ArrayList<>();
-        String routeIDQuery ="select RouteID from Route";
+        String routeIDQuery ="select RouteID from Route order by RouteID";
         try
         {
             PreparedStatement rspst=conn.prepareStatement(routeIDQuery);
@@ -452,7 +452,7 @@ public class AddBookingPage extends JFrame{
         busIDLabel.setForeground(Color.orange);
         ArrayList<String> busStatList = new ArrayList<>();
 
-        String busIDQuery ="select busID from Bus where Availability='Active'";
+        String busIDQuery ="select busID from Bus where Availability='Active' order by busID";
         try
         {
             PreparedStatement psmt=conn.prepareStatement(busIDQuery);
@@ -481,7 +481,7 @@ public class AddBookingPage extends JFrame{
         driverIDLabel.setForeground(Color.orange);
 
         ArrayList<String> driverIDStatList = new ArrayList<>();
-        String driverIDQuery ="select driverID from Driver where AccountStatus='Active'";
+        String driverIDQuery ="select driverID from Driver where AccountStatus='Active' order by driverID";
         try
         {
             PreparedStatement psmt=conn.prepareStatement(driverIDQuery);
@@ -507,7 +507,7 @@ public class AddBookingPage extends JFrame{
         priceIDLabel.setForeground(Color.orange);
 
         ArrayList<String> priceIDStatList = new ArrayList<>();
-        String priceIDQuery ="select priceID from Price";
+        String priceIDQuery ="select priceID from Price order by priceID";
         try
         {
             PreparedStatement psmt=conn.prepareStatement(priceIDQuery);
@@ -789,7 +789,7 @@ public class AddBookingPage extends JFrame{
         routeIDLabel.setVisible(false);
 
         ArrayList<String> routeStatList = new ArrayList<>();
-        String routeIDQuery ="select RouteID from Route";
+        String routeIDQuery ="select RouteID from Route order by RouteID";
         try
         {
             PreparedStatement rspst=conn.prepareStatement(routeIDQuery);
@@ -820,7 +820,7 @@ public class AddBookingPage extends JFrame{
 
         ArrayList<String> busStatList = new ArrayList<>();
 
-        String busIDquery ="select busID from Bus where Availability='Active'";
+        String busIDquery ="select busID from Bus where Availability='Active' order by busID";
         try
         {
             PreparedStatement psmt=conn.prepareStatement(busIDquery);
@@ -850,7 +850,7 @@ public class AddBookingPage extends JFrame{
         driverIDLabel.setVisible(false);
 
         ArrayList<String> driverIDStatList = new ArrayList<>();
-        String driverIDQuery ="select driverID from Driver where AccountStatus='Active'";
+        String driverIDQuery ="select driverID from Driver where AccountStatus='Active' order by driverID";
         try
         {
             PreparedStatement psmt=conn.prepareStatement(driverIDQuery);
@@ -878,7 +878,7 @@ public class AddBookingPage extends JFrame{
         priceIDLabel.setVisible(false);
 
         ArrayList<String> priceIDStatList = new ArrayList<>();
-        String priceIDQuery ="select priceID from Price";
+        String priceIDQuery ="select priceID from Price order by priceID";
         try
         {
             PreparedStatement psmt=conn.prepareStatement(priceIDQuery);
